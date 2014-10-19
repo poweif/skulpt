@@ -96,12 +96,12 @@ var $builtinmodule = function(name)
       function(self, canvasid) {
         var canvas = document.getElementById(canvasid.v);
         var gl = setupWebGL(canvasid.v, canvas);
-        gl.canvas = canvas;
         if (!gl) {
           throw new Error("Your browser does not appear to support WebGL.");
         }
 
         self.gl = gl;
+        self.canvas = canvas;
 
         // Copy symbolic constants and functions from native WebGL, encapsulating where necessary.       
         for (var k in gl.__proto__) {
@@ -221,20 +221,9 @@ var $builtinmodule = function(name)
         }, 1000.0 / 60.0); // 60 fps
     });
 
-    $loc.setRenderFunc = new Sk.builtin.func(function(self, func) {
+    // The following callback methods are modeled after GLUT.
+    $loc.setDisplayFunc = new Sk.builtin.func(function(self, func) {
       Sk.misceval.callsim(func, self);
-    });
-
-    $loc.setMouseDownFunc = new Sk.builtin.func(function(self, func) {
-      self.gl.canvas.onmousedown = function(ev) {
-        var rect = self.gl.canvas.getBoundingClientRect();
-        Sk.misceval.callsim(func,
-			    self,
-                            Sk.builtin.assk$(ev.clientX - rect.left,
-					     Sk.builtin.nmber.int$),
-                            Sk.builtin.assk$(ev.clientY - rect.top,
-					     Sk.builtin.nmber.int$));
-      };
     });
 
   }, 'Context', []);
