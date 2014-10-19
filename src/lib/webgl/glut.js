@@ -2,12 +2,21 @@
 var $builtinmodule = function(name)
 {
   var mod = {};
+  var lastMouseTarget;
 
   mod.Init = Sk.misceval.buildClass(mod, function($gbl, $loc) {
-
     $loc.__init__ = new Sk.builtin.func(function(self, glcontext) {
         self.canvas = glcontext.canvas;
 	self.gl = glcontext;
+	document.addEventListener('mousemove', function(ev) {
+          lastMouseTarget = ev.target;
+	}, false);
+	document.addEventListener('keydown', function(ev) {
+          if (self.canvas.onPrivateKeyDown !== 'undfined' &&
+            lastMouseTarget === self.canvas) {
+            self.canvas.onPrivateKeyDown(ev);
+	  }
+	}, false);
       }
     );
 
@@ -54,11 +63,13 @@ var $builtinmodule = function(name)
 					     Sk.builtin.nmber.int$));
       };
     });
-/*    
-    // glut's mouse motion model is different from that of JS and WebGL. We just
-    // assume that motion callback is called for all mouse movement (pressed or
-    // unpressed).
-    $loc.motionFunc = new Sk.builitin.func(function(self, func) {
+
+    /*
+     * glut's mouse motion model is different from that of JS and WebGL. We just
+     * assume that motion callback is called for all mouse movement (pressed or
+     * unpressed)
+     */
+    $loc.motionFunc = new Sk.builtin.func(function(self, func) {
       self.canvas.onmousemove = function(ev) {
         var rect = self.canvas.getBoundingClientRect();
         Sk.misceval.callsim(func,
@@ -71,7 +82,7 @@ var $builtinmodule = function(name)
     });
 
     $loc.keyboardFunc = new Sk.builtin.func(function(self, func) {
-      self.canvas.onkeydown = function(ev) {
+      self.canvas.onPrivateKeyDown = function(ev) {
         var rect = self.canvas.getBoundingClientRect();
         var ch = String.fromCharCode(ev.keyCode);
         Sk.misceval.callsim(func,
@@ -83,7 +94,6 @@ var $builtinmodule = function(name)
 					     Sk.builtin.nmber.int$));
       }
     });
-*/
   }, 'glut', []);
 
   return mod;
