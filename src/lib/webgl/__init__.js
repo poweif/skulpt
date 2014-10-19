@@ -95,7 +95,8 @@ var $builtinmodule = function(name)
     $loc.__init__ = new Sk.builtin.func(
       function(self, canvasid) {
         var canvas = document.getElementById(canvasid.v);
-        var gl = setupWebGL(canvasid.v, canvas)
+        var gl = setupWebGL(canvasid.v, canvas);
+        gl.canvas = canvas;
         if (!gl) {
           throw new Error("Your browser does not appear to support WebGL.");
         }
@@ -218,6 +219,22 @@ var $builtinmodule = function(name)
         function() {
           Sk.misceval.callsim(func, self, (new Date()).getTime() - startTime);
         }, 1000.0 / 60.0); // 60 fps
+    });
+
+    $loc.setRenderFunc = new Sk.builtin.func(function(self, func) {
+      Sk.misceval.callsim(func, self);
+    });
+
+    $loc.setMouseDownFunc = new Sk.builtin.func(function(self, func) {
+      self.gl.canvas.onmousedown = function(ev) {
+	var rect = self.gl.canvas.getBoundingClientRect();
+        Sk.misceval.callsim(func,
+			    self,
+                            Sk.builtin.assk$(ev.clientX - rect.left,
+					     Sk.builtin.nmber.int$),
+                            Sk.builtin.assk$(ev.clientY - rect.top,
+					     Sk.builtin.nmber.int$));
+      };
     });
 
   }, 'Context', []);
