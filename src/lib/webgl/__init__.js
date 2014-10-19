@@ -227,7 +227,7 @@ var $builtinmodule = function(name)
 
     $loc.setMouseDownFunc = new Sk.builtin.func(function(self, func) {
       self.gl.canvas.onmousedown = function(ev) {
-	var rect = self.gl.canvas.getBoundingClientRect();
+        var rect = self.gl.canvas.getBoundingClientRect();
         Sk.misceval.callsim(func,
 			    self,
                             Sk.builtin.assk$(ev.clientX - rect.left,
