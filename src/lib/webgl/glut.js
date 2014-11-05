@@ -1,4 +1,3 @@
-
 var $builtinmodule = function(name)
 {
   var mod = {};
@@ -11,10 +10,10 @@ var $builtinmodule = function(name)
 	document.addEventListener('mousemove', function(ev) {
           lastMouseTarget = ev.target;
 	}, false);
-	document.addEventListener('keydown', function(ev) {
-          if (self.canvas.onPrivateKeyDown !== 'undfined' &&
+	document.addEventListener('keypress', function(ev) {
+          if (self.canvas.onPrivateKeyPress !== 'undfined' &&
             lastMouseTarget === self.canvas) {
-            self.canvas.onPrivateKeyDown(ev);
+            self.canvas.onPrivateKeyPress(ev);
 	  }
 	}, false);
       }
@@ -82,12 +81,12 @@ var $builtinmodule = function(name)
     });
 
     $loc.keyboardFunc = new Sk.builtin.func(function(self, func) {
-      self.canvas.onPrivateKeyDown = function(ev) {
+      self.canvas.onPrivateKeyPress = function(ev) {
         var rect = self.canvas.getBoundingClientRect();
-        var ch = String.fromCharCode(ev.keyCode);
+        var ch = ev.keyCode ? ev.keyCode : ev.which;
         Sk.misceval.callsim(func,
 			    self.gl,
-			    Sk.builtin.chr(ch.charCodeAt(0)),
+			    Sk.builtin.chr(ch),
                             Sk.builtin.assk$(ev.clientX - rect.left,
 					     Sk.builtin.nmber.int$),
                             Sk.builtin.assk$(ev.clientY - rect.top,
