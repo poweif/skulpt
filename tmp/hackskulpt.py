@@ -359,13 +359,12 @@ def getBuiltinsAsJson(options):
                 f = os.path.join(dirpath, filename)
                 ext = os.path.splitext(f)[1]
                 if ext == ".py" or ext == ".js":
-                    if options.verbose:
-                        print "reading", f
+                    print "reading", f
                     f = f.replace("\\", "/")
                     ret['files'][f] = open(f).read()
     return "Sk.builtinFiles=" + json.dumps(ret)
 
-def dist(options):
+def dist():
     """builds a 'shippable' version of Skulpt.
 
     this is all combined into one file, tests run, jslint'd, compressed.
@@ -382,101 +381,32 @@ def dist(options):
         print "or see:  http://packages.python.org/GitPython/0.3.1/intro.html#getting-started"
         print "+----------------------------------------------------------------------------+"
 
-    if options.verbose:
-        print ". Removing distribution directory, '{0}/'.".format(DIST_DIR)
-
+    print ". Removing distribution directory, '{0}/'.".format(DIST_DIR)
     os.system("rm -rf {0}/".format(DIST_DIR))
     if not os.path.exists(DIST_DIR): os.mkdir(DIST_DIR)
 
-    if options.uncompressed or True:
-        if options.verbose:
-            print ". Writing combined version..."
-        combined = ''
-        linemap = open("{0}/{1}".format(DIST_DIR, OUTFILE_MAP), "w")
-        curline = 1
-        for file in getFileList(FILE_TYPE_DIST):
-            curfiledata = open(file).read()
-            combined += curfiledata
-            print >>linemap, "%d:%s" % (curline, file)
-            curline += len(curfiledata.split("\n")) - 1
-        linemap.close()
-        uncompfn = "{0}/{1}".format(DIST_DIR, OUTFILE_REG)
-        open(uncompfn, "w").write(combined)
-        # Prevent accidental editing of the uncompressed distribution file.
-        os.system("chmod 444 {0}/{1}".format(DIST_DIR, OUTFILE_REG))
+    print ". Writing combined version..."
+    combined = ''
+    linemap = open("{0}/{1}".format(DIST_DIR, OUTFILE_MAP), "w")
+    curline = 1
+    for file in getFileList(FILE_TYPE_DIST):
+        curfiledata = open(file).read()
+        combined += curfiledata
+        print >>linemap, "%d:%s" % (curline, file)
+        curline += len(curfiledata.split("\n")) - 1
+    linemap.close()
+    uncompfn = "{0}/{1}".format(DIST_DIR, OUTFILE_REG)
+    open(uncompfn, "w").write(combined)
+    # Prevent accidental editing of the uncompressed distribution file.
+    os.system("chmod 444 {0}/{1}".format(DIST_DIR, OUTFILE_REG))
 
 
     # Make the compressed distribution.
-    compfn = "{0}/{1}".format(DIST_DIR, OUTFILE_MIN)
     builtinfn = "{0}/{1}".format(DIST_DIR, OUTFILE_LIB)
 
-    # Run tests on uncompressed.
-    if options.verbose:
-        print ". Running tests on uncompressed..."
-
-#    ret = test()
-#    if ret != 0:
-#        print "Tests failed on uncompressed version."
-#        sys.exit(1);
-
-    # compress
-    uncompfiles = ' '.join(['--js ' + x for x in getFileList(FILE_TYPE_DIST)])
-
-    if options.verbose:
-        print ". Compressing..."
-
-#    ret = os.system("java -jar support/closure-compiler/compiler.jar --define goog.DEBUG=false --output_wrapper \"(function(){%%output%%}());\" --compilation_level SIMPLE_OPTIMIZATIONS --jscomp_error accessControls --jscomp_error checkRegExp --jscomp_error checkTypes --jscomp_error checkVars --jscomp_error deprecated --jscomp_off fileoverviewTags --jscomp_error invalidCasts --jscomp_error missingProperties --jscomp_error nonStandardJsDocs --jscomp_error strictModuleDepCheck --jscomp_error undefinedVars --jscomp_error unknownDefines --jscomp_error visibility %s --js_output_file %s" % (uncompfiles, compfn))
-    # to disable asserts
-    # --define goog.DEBUG=false
-    #
-    # to make a file that for ff plugin, not sure of format
-    # --create_source_map <distribution-dir>/srcmap.txt
-    #
-    # --jscomp_error accessControls --jscomp_error checkRegExp --jscomp_error checkTypes --jscomp_error checkVars --jscomp_error deprecated --jscomp_error fileoverviewTags --jscomp_error invalidCasts --jscomp_error missingProperties --jscomp_error nonStandardJsDocs --jscomp_error strictModuleDepCheck --jscomp_error undefinedVars --jscomp_error unknownDefines --jscomp_error visibility
-    #
-#    if ret != 0:
-#        print "closure-compiler failed."
-#        sys.exit(1)
-
-    # Run tests on compressed.
-#    if options.verbose:
-#        print ". Running tests on compressed..."
-#    ret = os.system("{0} {1} {2}".format(jsengine, compfn, ' '.join(TestFiles)))
-#    if ret != 0:
-#        print "Tests failed on compressed version."
-#        sys.exit(1)
-
-#    ret = os.system("cp {0} {1}/tmp.js".format(compfn, DIST_DIR))
-#    if ret != 0:
-#        print "Couldn't copy for gzip test."
-#        sys.exit(1)
-
-#    ret = os.system("gzip -9 {0}/tmp.js".format(DIST_DIR))
-#    if ret != 0:
-#        print "Couldn't gzip to get final size."
-#        sys.exit(1)
-
-#    size = os.path.getsize("{0}/tmp.js.gz".format(DIST_DIR))
-#    os.unlink("{0}/tmp.js.gz".format(DIST_DIR))
-
     with open(builtinfn, "w") as f:
-        f.write(getBuiltinsAsJson(options))
-        if options.verbose:
-            print ". Wrote {0}".format(builtinfn)
-
-    # Update documentation folder copies of the distribution.
-#    ret  = os.system("cp {0} doc/static/{1}".format(compfn,    OUTFILE_MIN))
-#    ret |= os.system("cp {0} doc/static/{1}".format(builtinfn, OUTFILE_LIB))
-#    if ret != 0:
-#        print "Couldn't copy to docs dir."
-#        sys.exit(1)
-    if options.verbose:
-        print ". Updated doc dir"
-
-    # All good!
-    if options.verbose:
-        print ". Wrote {0}.".format(compfn)
-#        print ". gzip of compressed: %d bytes" % size
+        f.write(getBuiltinsAsJson(None))
+        print ". Wrote {0}".format(builtinfn)
 
 def regenparser():
     """regenerate the parser/ast source code"""

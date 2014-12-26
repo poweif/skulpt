@@ -353,7 +353,7 @@ goog.addDependency = function(relPath, provides, requires) {
  * provided (and depend on the fact that some outside tool correctly ordered
  * the script).
  */
-goog.define('goog.ENABLE_DEBUG_LOADER', true);
+goog.define('goog.ENABLE_DEBUG_LOADER', false);
 
 
 /**
