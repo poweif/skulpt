@@ -10,6 +10,16 @@ from watchdog.events import LoggingEventHandler
 
 import hackskulpt
 
+def skip_file(fname):
+    base = os.path.basename(fname)
+    if len(base) < 1:
+        print 'skip file: ' + base + ' true'
+        return True
+    if base[0] == '.' or base[0] == '#' or base[len(base) - 1] == '~':
+        print 'skip file: ' + base + ' true'
+        return True
+    return False
+
 class BuildEventHandler(LoggingEventHandler):
     """Logs all the events captured."""
     def do_copy(self):
@@ -19,7 +29,8 @@ class BuildEventHandler(LoggingEventHandler):
         hackskulpt.dist()
         files = ['skulpt.js', 'skulpt-stdlib.js']
         for f in files:
-            shutil.copy(self._dist + '/' + f, self._dest)
+            src_file = self._dist + '/' + f
+            shutil.copy(src_file, self._dest)
 
     def __init__(self, dist, dest):
         super(BuildEventHandler, self).__init__()
@@ -29,23 +40,25 @@ class BuildEventHandler(LoggingEventHandler):
 
     def on_moved(self, event):
         super(BuildEventHandler, self).on_moved(event)
+        if event.is_directory or skip_file(event.src_path):
+            return
         self.do_copy()
 
     def on_created(self, event):
         super(BuildEventHandler, self).on_created(event)
-        if event.is_directory:
+        if event.is_directory or skip_file(event.src_path):
             return
         self.do_copy()
 
     def on_deleted(self, event):
         super(BuildEventHandler, self).on_deleted(event)
-        if event.is_directory:
+        if event.is_directory or skip_file(event.src_path):
             return
         self.do_copy()
 
     def on_modified(self, event):
         super(BuildEventHandler, self).on_modified(event)
-        if event.is_directory:
+        if event.is_directory or skip_file(event.src_path):
             return
         self.do_copy()
 

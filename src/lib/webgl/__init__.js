@@ -19,7 +19,7 @@ var $builtinmodule = function(name)
   var NEED_HARDWARE = '' +
     "It doesn't appear your computer can support WebGL.<br/>" +
     '<a href="http://get.webgl.org">Click here for more information.</a>';
-  
+
   var create3DContext = function(canvas) {
     var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
     var gl = null;
@@ -57,7 +57,6 @@ var $builtinmodule = function(name)
       container.innerHTML = makeFailHTML(GET_A_WEBGL_BROWSER);
       return;
     }
-
     var gl = create3DContext(opt_canvas);
     if (!gl) {
       // TODO(gman): fix to official way to detect that it's the user's machine, not the browser.
@@ -85,6 +84,7 @@ var $builtinmodule = function(name)
         container.innerHTML = makeFailHTML(GET_A_WEBGL_BROWSER);
       }
     }
+
     return gl;
   };
 
@@ -103,52 +103,43 @@ var $builtinmodule = function(name)
         self.gl = gl;
         self.canvas = canvas;
 
-        // Copy symbolic constants and functions from native WebGL, encapsulating where necessary.       
+        // Copy symbolic constants and functions from native WebGL, encapsulating where necessary.
         for (var k in gl.__proto__) {
+            // To bypass a bug in mozilla's implemntation.  We don't need access to canvas from here
+            // anyways.
+            if (k === "canvas" || k === "drawingBufferWidth" || k === "drawingBufferHeight")
+                continue;
+
           if (typeof gl.__proto__[k] === 'number') {
             Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str(k), gl.__proto__[k]);
           }
           else if (typeof gl.__proto__[k] === "function") {
             switch(k) {
-              case 'bufferData': {
-              }
-              break;
-              case 'clearColor': {
-              }
-              break;
-              case 'drawArrays': {
-              }
-              break;
-              case 'getAttribLocation': {
-              }
-              break;
-              case 'getUniformLocation': {
-              }
-              break;
-              case 'shaderSource': {
-              }
-              break;
-              case 'uniformMatrix4fv': {
-              }
-              break;
-              case 'vertexAttribPointer': {
-              }
-              break;
-              case 'viewport': {
-              }
+              case 'bufferData':
+              case 'clearColor':
+              case 'drawArrays':
+              case 'getAttribLocation':
+              case 'getUniformLocation':
+              case 'shaderSource':
+              case 'uniformMatrix4fv':
+              case 'vertexAttribPointer':
+              case 'viewport':
               break;
               default: {
                 (function(key) {
-                  Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str(k), new Sk.builtin.func(function() {
-                    var f = gl.__proto__[key];
-                    return f.apply(gl, arguments);
-                  }));
+                  Sk.abstr.objectSetItem(
+                      self['$d'],
+                      new Sk.builtin.str(key),
+                      new Sk.builtin.func(function() {
+                          var f = gl.__proto__[key];
+                          return f.apply(gl, arguments);
+                      })
+                  );
                  }(k));
               }
             }
           }
         }
-
         gl.clearColor(100.0/255.0, 149.0/255.0, 237.0/255.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
       }
@@ -292,7 +283,7 @@ var $builtinmodule = function(name)
 
     $loc.perspective = new Sk.builtin.func(
       function(self, fov, aspect, near, far) {
-        
+
         var t = Math.tan(Math.PI * 0.5 - 0.5 * (Sk.builtin.asnum$(fov) * Math.PI / 180));
         var a = Sk.builtin.asnum$(aspect)
         var n = Sk.builtin.asnum$(near)

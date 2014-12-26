@@ -358,7 +358,8 @@ def getBuiltinsAsJson(options):
             for filename in filenames:
                 f = os.path.join(dirpath, filename)
                 ext = os.path.splitext(f)[1]
-                if ext == ".py" or ext == ".js":
+                base = os.path.basename(f)
+                if (ext == ".py" or ext == ".js") and (not '#' in base) and (not '~' in base):
                     print "reading", f
                     f = f.replace("\\", "/")
                     ret['files'][f] = open(f).read()
@@ -398,7 +399,7 @@ def dist():
     uncompfn = "{0}/{1}".format(DIST_DIR, OUTFILE_REG)
     open(uncompfn, "w").write(combined)
     # Prevent accidental editing of the uncompressed distribution file.
-    os.system("chmod 444 {0}/{1}".format(DIST_DIR, OUTFILE_REG))
+    #os.system("chmod 444 {0}/{1}".format(DIST_DIR, OUTFILE_REG))
 
 
     # Make the compressed distribution.
