@@ -103,9 +103,11 @@ var $builtinmodule = function(name)
         self.gl = gl;
         self.canvas = canvas;
 
+        console.log(gl.__proto__);
+
         // Copy symbolic constants and functions from native WebGL, encapsulating where necessary.
         for (var k in gl.__proto__) {
-            // To bypass a bug in mozilla's implemntation.  We don't need access to canvas from here
+            // To bypass a bug in mozilla's implementation.  We don't need access to canvas from here
             // anyways.
             if (k === "canvas" || k === "drawingBufferWidth" || k === "drawingBufferHeight")
                 continue;
