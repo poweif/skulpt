@@ -95,7 +95,7 @@ var $builtinmodule = function(name)
 
     var _v3_apply_projection = function(self, m) {
         var x = self.v.x, y = self.v.y, z = self.v.z;
-        var e = m.v.elements;
+        var e = m.v;
         var d = 1 /(e[3] * x + e[7] * y + e[11] * z + e[15]); // perspective divide
         self.v.x =(e[0] * x + e[4] * y + e[8]  * z + e[12]) * d;
         self.v.y =(e[1] * x + e[5] * y + e[9]  * z + e[13]) * d;
@@ -103,9 +103,9 @@ var $builtinmodule = function(name)
         return self;
     };
 
-    var _v3_appy_matrix4 = function(self, m) {
+    var _v3_apply_matrix4 = function(self, m) {
         var x = self.v.x, y = self.v.y, z = self.v.z;
-        var e = m.v.elements;
+        var e = m.v;
         self.v.x = e[0] * x + e[4] * y + e[8]  * z + e[12];
         self.v.y = e[1] * x + e[5] * y + e[9]  * z + e[13];
         self.v.z = e[2] * x + e[6] * y + e[10] * z + e[14];
@@ -114,7 +114,7 @@ var $builtinmodule = function(name)
 
     var _v3_transform_direction = function(self, m) {
         var x = self.v.x, y = self.v.y, z = self.v.z;
-        var e = m.elements;
+        var e = m.v;
 
         self.v.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ]  * z;
         self.v.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ]  * z;
@@ -307,7 +307,7 @@ var $builtinmodule = function(name)
                 var y = self.v.y;
                 var z = self.v.z;
 
-                var e = m.v.elements;
+                var e = m.v;
                 self.v.x = e[0] * x + e[3] * y + e[6] * z;
                 self.v.y = e[1] * x + e[4] * y + e[7] * z;
                 self.v.z = e[2] * x + e[5] * y + e[8] * z;
@@ -530,7 +530,7 @@ var $builtinmodule = function(name)
             }
         );
 
-        $loc.crossVectors = new Sk.builtin.func(_v3_cross_vectors(self, a, b));
+        $loc.crossVectors = new Sk.builtin.func(_v3_cross_vectors);
 
         $loc.projectOnVector = NOT_IMPLEMENTED("vec3.projectOnVector");
         $loc.projectOnPlane = NOT_IMPLEMENTED("vec3.projectOnPlane");
@@ -565,24 +565,23 @@ var $builtinmodule = function(name)
 
         $loc.setFromMatrixPosition = new Sk.builtin.func(
             function(self, m) {
-                self.v.x = m.v.elements[12];
-                self.v.y = m.v.elements[13];
-                self.v.z = m.v.elements[14];
+                self.v.x = m.v[12];
+                self.v.y = m.v[13];
+                self.v.z = m.v[14];
                 return self;
             }
         );
-
 
         $loc.setFromMatrixScale = (function() {
             var s = _v3_new();
             return new Sk.builtin.func(
                 function(self, m) {
                     var sx = _v3_length(
-                        _v3_set(s, m.v.elements[0], m.v.elements[1], m.elements[2]));
+                        _v3_set(s, m.v[0], m.v[1], m.v[2]));
                     var sy = _v3_length(
-                        _v3_set(s, m.v.elements[4], m.v.elements[5], m.elements[6]));
+                        _v3_set(s, m.v[4], m.v[5], m.v[6]));
                     var sz = _v3_length(
-                        _v3_set(s, m.v.elements[8], m.v.elements[9], m.elements[10]));
+                        _v3_set(s, m.v[8], m.v[9], m.v[10]));
                     self.v.x = sx;
                     self.v.y = sy;
                     self.v.z = sz;
@@ -595,7 +594,7 @@ var $builtinmodule = function(name)
         $loc.setFromMatrixColumn = new Sk.builtin.func(
             function(self, ind, mat) {
                 var of = _jsnum(ind) * 4;
-                var me = matrix.v.elements;
+                var me = matrix.v;
                 self.v.x = me[of];
                 self.v.y = me[of + 1];
                 self.v.z = me[of + 2];
@@ -643,7 +642,7 @@ var $builtinmodule = function(name)
 
     var _mat4_set = function(self, n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41,
                              n42, n43, n44) {
-        var te = self.v.elements;
+        var te = self.v;
         te[0] = n11; te[4] = n12; te[8] = n13; te[12] = n14; te[1] = n21; te[5] = n22; te[9] = n23;
         te[13] = n24; te[2] = n31; te[6] = n32; te[10] = n33; te[14] = n34; te[3] = n41;
         te[7] = n42; te[11] = n43; te[15] = n44;
@@ -651,9 +650,9 @@ var $builtinmodule = function(name)
     };
 
     var _mat4_multiply_matrices = function(self, a, b) {
-        var ae = a.v.elements;
-        var be = b.v.elements;
-        var te = self.v.elements;
+        var ae = a.v;
+        var be = b.v;
+        var te = self.v;
 
         var a11 = ae[0], a12 = ae[4], a13 = ae[8], a14 = ae[12];
         var a21 = ae[1], a22 = ae[5], a23 = ae[9], a24 = ae[13];
@@ -698,7 +697,7 @@ var $builtinmodule = function(name)
     };
 
     var _mat4_multiply_scalar = function(self, s) {
-        var te = self.v.elements;
+        var te = self.v;
         te[0] *= s; te[4] *= s; te[8] *= s; te[12] *= s;
         te[1] *= s; te[5] *= s; te[9] *= s; te[13] *= s;
         te[2] *= s; te[6] *= s; te[10] *= s; te[14] *= s;
@@ -706,8 +705,8 @@ var $builtinmodule = function(name)
         return self;
     };
 
-    var _mat_4_make_rotation_from_quaternion = function(self, q) {
-        var te = self.v.elements;
+    var _mat4_make_rotation_from_quaternion = function(self, q) {
+        var te = self.v;
 
         var x = q.v.x, y = q.v.y, z = q.v.z, w = q.v.w;
         var x2 = x + x, y2 = y + y, z2 = z + z;
@@ -742,7 +741,7 @@ var $builtinmodule = function(name)
     };
 
     var _mat4_scale = function(self, v) {
-        var te = self.v.elements;
+        var te = self.v;
         var x = v.v.x, y = v.v.y, z = v.v.z;
         te[0] *= x; te[4] *= y; te[8] *= z;
         te[1] *= x; te[5] *= y; te[9] *= z;
@@ -752,7 +751,7 @@ var $builtinmodule = function(name)
     };
 
     var _mat4_set_position = function(self, v) {
-        var te = self.v.elements;
+        var te = self.v;
         te[12] = v.v.x;
         te[13] = v.v.y;
         te[14] = v.v.z;
@@ -760,7 +759,7 @@ var $builtinmodule = function(name)
     };
 
     var _mat4_determinant = function(self) {
-        var te = self.v.elements;
+        var te = self.v;
 
         var n11 = te[0], n12 = te[4], n13 = te[8], n14 = te[12];
         var n21 = te[1], n22 = te[5], n23 = te[9], n24 = te[13];
@@ -800,12 +799,13 @@ var $builtinmodule = function(name)
         );
     };
 
+
     var _quat_set_from_rotation_matrix = function(self, matrix) {
         console.log("_quat_set_from_rotation_matrix not implemented (TODO)");
     };
 
     var _mat4_make_frustum = function(self, left, right, bottom, top, near, far) {
-        var te = self.v.elements;
+        var te = self.v;
         var x = 2 * near / (right - left);
         var y = 2 * near / (top - bottom);
 
@@ -824,20 +824,19 @@ var $builtinmodule = function(name)
 
     var _mat4_new = function() {
         return {
-            elements:
-            new Float32Array([
+            v: new Float32Array([
                 1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
                 0, 0, 0, 1
-            ]);
+            ])
         };
     };
 
     mod.mat4 = Sk.misceval.buildClass(mod, function($gbl, $loc) {
         $loc.__init__ = new Sk.builtin.func(
             function(self) {
-                self.v.elements = new Float32Array([
+                self.v = new Float32Array([
                     1, 0, 0, 0,
                     0, 1, 0, 0,
                     0, 0, 1, 0,
@@ -862,7 +861,7 @@ var $builtinmodule = function(name)
 
         $loc.copy = new Sk.builtin.func(
             function(self, m) {
-                self.v.elements.set(m.v.elements);
+                self.v.set(m.v);
                 return self;
             }
         );
@@ -871,8 +870,8 @@ var $builtinmodule = function(name)
 
         $loc.copyPosition = new Sk.builtin.func(
             function(self, m) {
-                var te = self.v.elements;
-                var me = m.v.elements;
+                var te = self.v;
+                var me = m.v;
                 te[12] = me[12];
                 te[13] = me[13];
                 te[14] = me[14];
@@ -884,8 +883,8 @@ var $builtinmodule = function(name)
             var v1 = _v3_new();
             return new Sk.builtin.func(
                 function(self, m) {
-                    var te = this.elements;
-                    var me = m.v.elements;
+                    var te = self.v;
+                    var me = m.v;
 
                     var scaleX = 1 / _v3_length(_v3_set(v1, me[0], me[1], me[2]));
                     var scaleY = 1 / _v3_length(_v3_set(v1, me[4], me[5], me[6]));
@@ -910,7 +909,7 @@ var $builtinmodule = function(name)
 
         $loc.makeRotationFromEuler = new Sk.builtin.func(
             function(self, euler) {
-                var te = self.v.elements;
+                var te = self.v;
 
                 var x = euler.v.x, y = euler.v.y, z = euler.v.z;
                 var a = Math.cos(x), b = Math.sin(x);
@@ -1017,7 +1016,6 @@ var $builtinmodule = function(name)
 
         $loc.setRotationFromQuaternion = NOT_IMPLEMENTED("mat4.setRotationFromQuaternion");
 
-
         $loc.makeRotationFromQuaternion = new Sk.builtin.func(_mat4_make_rotation_from_quaternion);
 
         $loc.lookAt = (function() {
@@ -1026,7 +1024,7 @@ var $builtinmodule = function(name)
             var z = _v3_new();
             return new Sk.builtin.func(
                 function(self, eye, target, up) {
-                    var te = self.v.elements;
+                    var te = self.v;
                     z = _v3_normalize(_v3_sub_vectors(z, eye, target));
                     if (_v3_length(z) === 0)
                         z.v.z = 1;
@@ -1059,7 +1057,7 @@ var $builtinmodule = function(name)
         $loc.multiplyToArray = new Sk.builtin.func(
             function(self, a, b, py_r) {
                 _mat4_multiply_matrices(self, a, b);
-                var te = self.v.elements;
+                var te = self.v;
                 var r = py_r.v;
 
                 r[0] = te[0]; r[1] = te[1]; r[2] = te[2]; r[3] = te[3];
@@ -1126,7 +1124,7 @@ var $builtinmodule = function(name)
 
         $loc.transpose = new Sk.builtin.func(
             function(self) {
-                var te = self.v.elements;
+                var te = self.v;
                 var tmp;
 
                 tmp = te[1]; te[1] = te[4]; te[4] = tmp;
@@ -1143,7 +1141,7 @@ var $builtinmodule = function(name)
 
         $loc.flattenToArrayOffset = new Sk.builtin.func(
             function(self, py_array, py_offset) {
-                var te = self.v.elements;
+                var te = self.v;
                 var array = py_array.v;
                 var offset = _jsnum(py_offset);
 
@@ -1175,9 +1173,9 @@ var $builtinmodule = function(name)
             var v1 = _v3_new();
             return new Sk.builtin.func(
                 function(self) {
-                    var te = self.v.elements;
+                    var te = self.v;
                     return _v3_set(v1, te[12], te[13], te[14]);
-                };
+                }
             );
         })();
 
@@ -1186,8 +1184,8 @@ var $builtinmodule = function(name)
         $loc.getInverse = new Sk.builtin.func(
             function(self, m) {
                 // based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
-                var te = self.v.elements;
-                var me = m.elements;
+                var te = self.v;
+                var me = m.v;
 
                 var n11 = me[0], n12 = me[4], n13 = me[8], n14 = me[12];
                 var n21 = me[1], n22 = me[5], n23 = me[9], n24 = me[13];
@@ -1233,7 +1231,7 @@ var $builtinmodule = function(name)
 
         $loc.getMaxScaleOnAxis = new Sk.builtin.func(
             function(self) {
-                var te = self.v.elements;
+                var te = self.v;
 
                 var scaleXSq = te[0] * te[0] + te[1] * te[1] + te[2] * te[2];
                 var scaleYSq = te[4] * te[4] + te[5] * te[5] + te[6] * te[6];
@@ -1260,6 +1258,7 @@ var $builtinmodule = function(name)
                 var theta = _jsnum(py_theta);
                 var c = Math.cos(theta), s = Math.sin(theta);
                 return _mat4_set(
+                    self,
                     1, 0,  0, 0,
                     0, c, - s, 0,
                     0, s,  c, 0,
@@ -1273,6 +1272,7 @@ var $builtinmodule = function(name)
                 var theta = _jsnum(py_theta);
                 var c = Math.cos(theta), s = Math.sin(theta);
                 return _mat4_set(
+                    self,
                     c, 0, s, 0,
                     0, 1, 0, 0,
                   - s, 0, c, 0,
@@ -1286,6 +1286,7 @@ var $builtinmodule = function(name)
                 var theta = _jsnum(py_theta);
                 var c = Math.cos(theta), s = Math.sin(theta);
                 return _mat4_set(
+                    self,
                     c, - s, 0, 0,
                     s,  c, 0, 0,
                     0,  0, 1, 0,
@@ -1317,6 +1318,7 @@ var $builtinmodule = function(name)
         $loc.makeScale = new Sk.builtin.func(
             function(self, x, y, z) {
                 return _mat4_set(
+                    self,
                     x, 0, 0, 0,
                     0, y, 0, 0,
                     0, 0, z, 0,
@@ -1341,7 +1343,7 @@ var $builtinmodule = function(name)
             var matrix = _mat4_new();
             return new Sk.builtin.func(
                 function(position, quaternion, scale) {
-                    var te = self.v.elements;
+                    var te = self.v;
 
                     var sx = _v3_length(_v3_set(vector, te[0], te[1], te[2]));
                     var sy = _v3_length(_v3_set(vector, te[4], te[5], te[6]));
@@ -1359,23 +1361,23 @@ var $builtinmodule = function(name)
 
                     // scale the rotation part
 
-                    matrix.v.elements.set(self.v.elements); // at self.v point matrix is incomplete so we can't use .copy()
+                    matrix.v.set(self.v); // at self.v point matrix is incomplete so we can't use .copy()
 
                     var invSX = 1 / sx;
                     var invSY = 1 / sy;
                     var invSZ = 1 / sz;
 
-                    matrix.v.elements[0] *= invSX;
-                    matrix.v.elements[1] *= invSX;
-                    matrix.v.elements[2] *= invSX;
+                    matrix.v[0] *= invSX;
+                    matrix.v[1] *= invSX;
+                    matrix.v[2] *= invSX;
 
-                    matrix.v.elements[4] *= invSY;
-                    matrix.v.elements[5] *= invSY;
-                    matrix.v.elements[6] *= invSY;
+                    matrix.v[4] *= invSY;
+                    matrix.v[5] *= invSY;
+                    matrix.v[6] *= invSY;
 
-                    matrix.v.elements[8] *= invSZ;
-                    matrix.v.elements[9] *= invSZ;
-                    matrix.v.elements[10] *= invSZ;
+                    matrix.v[8] *= invSZ;
+                    matrix.v[9] *= invSZ;
+                    matrix.v[10] *= invSZ;
 
                     _quat_set_from_rotation_matrix(self, matrix);
 
@@ -1425,7 +1427,7 @@ var $builtinmodule = function(name)
                 var near = _jsnum(py_near);
                 var far = _jsnum(py_far);
 
-                var te = self.v.elements;
+                var te = self.v;
                 var w = right - left;
                 var h = top - bottom;
                 var p = far - near;
@@ -1445,33 +1447,32 @@ var $builtinmodule = function(name)
 
         $loc.fromArray = new Sk.builtin.func(
             function(self, array) {
-                self.v.elements.set(array.v);
+                self.v.set(array.v);
                 return self;
             }
         );
 
         $loc.toArray = new Sk.builtin.func(
             function(self) {
-                /*
-                var te = self.v.elements;
-                return [
-                    te[0], te[1], te[2], te[3],
-                        te[4], te[5], te[6], te[7],
-                        te[8], te[9], te[10], te[11],
-                        te[12], te[13], te[14], te[15]
-               ];
-                */
+
+//                var te = self.v;
+//                return [
+//                    te[0], te[1], te[2], te[3],
+//                        te[4], te[5], te[6], te[7],
+//                        te[8], te[9], te[10], te[11],
+//                        te[12], te[13], te[14], te[15]
+//               ];
             }
         );
 
         $loc.clone = new Sk.builtin.func(
             function(self) {
                 var ret = Sk.misceval.callsim(mod.mat4);
-                ret.v.elements.set(self.v.elements);
+                ret.v.set(self.v);
                 return ret;
             }
         );
     }, 'mat4', []);
 
-  return mod;
+    return mod;
 }
