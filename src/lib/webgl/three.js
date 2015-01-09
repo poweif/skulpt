@@ -146,6 +146,27 @@ var $builtinmodule = function(name)
         });
     }, 'arrayf', []);
 
+    // From the original webgl.Float32Array David Holmes.
+    mod.arrayi = Sk.misceval.buildClass(mod, function($gbl, $loc) {
+        $loc.__init__ = new Sk.builtin.func(function(self, data) {
+            if (typeof data === "number") {
+                self.v = new Uint16Array(data);
+            }
+            else {
+                self.v = new Uint16Array(Sk.ffi.remapToJs(data));
+            }
+        });
+
+        $loc.__repr__ = new Sk.builtin.func(function(self) {
+            var copy = [];
+            for (var i = 0; i < self.v.length; ++i) {
+                copy.push(self.v[i]);
+            }
+            return new Sk.builtin.str("[" + copy.join(', ') + "]");
+        });
+    }, 'arrayi', []);
+    
+
     mod.vec3 = Sk.misceval.buildClass(mod, function($gbl, $loc) {
         $loc.__init__ = new Sk.builtin.func(
             function(self, x, y, z) {
@@ -157,6 +178,10 @@ var $builtinmodule = function(name)
                 self.v.z = _jsnum(z) || 0;
             }
         );
+
+        $loc.__repr__ = new Sk.builtin.func(function(self) {
+            return new Sk.builtin.str("(" + self.v.x + ", " + self.v.y + ", " + self.v.z + ")");
+        });
 
         $loc.set = new Sk.builtin.func(
             function(self, x, y, z) {
@@ -822,6 +847,71 @@ var $builtinmodule = function(name)
         return self;
     };
 
+    var _mat4_inverse = function(self, m) {
+        // based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
+        var te = self.v;
+        var me = m.v;
+
+        var n11 = me[0], n12 = me[4], n13 = me[8], n14 = me[12];
+        var n21 = me[1], n22 = me[5], n23 = me[9], n24 = me[13];
+        var n31 = me[2], n32 = me[6], n33 = me[10], n34 = me[14];
+        var n41 = me[3], n42 = me[7], n43 = me[11], n44 = me[15];
+
+        te[0] = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 -
+            n23 * n32 * n44 + n22 * n33 * n44;
+        
+        te[4] = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 +
+            n13 * n32 * n44 - n12 * n33 * n44;
+
+        te[8] = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 -
+            n13 * n22 * n44 + n12 * n23 * n44;
+
+        te[12] = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 +
+            n13 * n22 * n34 - n12 * n23 * n34;
+        
+        te[1] = n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 +
+            n23 * n31 * n44 - n21 * n33 * n44;
+        
+        te[5] = n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 -
+            n13 * n31 * n44 + n11 * n33 * n44;
+        
+        te[9] = n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 +
+            n13 * n21 * n44 - n11 * n23 * n44;
+        
+        te[13] = n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 -
+            n13 * n21 * n34 + n11 * n23 * n34;
+        
+        te[2] = n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 -
+            n22 * n31 * n44 + n21 * n32 * n44;
+        
+        te[6] = n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 +
+            n12 * n31 * n44 - n11 * n32 * n44;
+        
+        te[10] = n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 -
+            n12 * n21 * n44 + n11 * n22 * n44;
+        
+        te[14] = n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 +
+            n12 * n21 * n34 - n11 * n22 * n34;
+        te[3] = n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 +
+            n22 * n31 * n43 - n21 * n32 * n43;
+        te[7] = n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 -
+            n12 * n31 * n43 + n11 * n32 * n43;
+        te[11] = n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 +
+            n12 * n21 * n43 - n11 * n22 * n43;
+        te[15] = n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 -
+            n12 * n21 * n33 + n11 * n22 * n33;
+        
+        var det = n11 * te[0] + n21 * te[4] + n31 * te[8] + n41 * te[12];
+        
+        if (det == 0) {
+            var msg = "mat4.getInverse: can't invert matrix, determinant is 0";
+            console.warn(msg);
+            return _mat4_identity(self);
+        }
+        
+        return _mat4_multiply_scalar(self, 1 / det);
+    }
+
     var _mat4_new = function() {
         return {
             v: new Float32Array([
@@ -844,6 +934,19 @@ var $builtinmodule = function(name)
                ]);
             }
         );
+
+        $loc.__repr__ = new Sk.builtin.func(function(self) {
+            var allStr = [];
+            for (var r = 0; r < 4; r++) {
+                var rowStr = function() {return [];}();
+                for (var c = 0; c < 4; c++) {
+                    var ind = c * 4 + r;
+                    rowStr.push("" + self.v[ind]);
+                }
+                allStr.push(rowStr.join(" "));
+            }
+            return new Sk.builtin.str("[\n" + allStr.join("\n") + "\n]");
+        });
 
         $loc.set = new Sk.builtin.func(
             function(self, n11, n12, n13, n14, n21, n22, n23, n24,
@@ -1139,6 +1242,12 @@ var $builtinmodule = function(name)
             }
         );
 
+        $loc.inverse = new Sk.builtin.func(
+            function(self) {
+                return _mat4_inverse(self, self);
+            }
+        );
+
         $loc.flattenToArrayOffset = new Sk.builtin.func(
             function(self, py_array, py_offset) {
                 var te = self.v;
@@ -1180,46 +1289,8 @@ var $builtinmodule = function(name)
         })();
 
         $loc.setPosition = new Sk.builtin.func(_mat4_set_position);
+        $loc.getInverse = new Sk.builtin.func(_mat4_inverse);
 
-        $loc.getInverse = new Sk.builtin.func(
-            function(self, m) {
-                // based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
-                var te = self.v;
-                var me = m.v;
-
-                var n11 = me[0], n12 = me[4], n13 = me[8], n14 = me[12];
-                var n21 = me[1], n22 = me[5], n23 = me[9], n24 = me[13];
-                var n31 = me[2], n32 = me[6], n33 = me[10], n34 = me[14];
-                var n41 = me[3], n42 = me[7], n43 = me[11], n44 = me[15];
-
-                te[0] = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44;
-                te[4] = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44;
-                te[8] = n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 - n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44;
-                te[12] = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
-                te[1] = n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44;
-                te[5] = n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44;
-                te[9] = n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44;
-                te[13] = n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34;
-                te[2] = n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44;
-                te[6] = n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44;
-                te[10] = n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44;
-                te[14] = n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34;
-                te[3] = n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43;
-                te[7] = n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 - n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43;
-                te[11] = n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 + n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43;
-                te[15] = n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33;
-
-                var det = n11 * te[0] + n21 * te[4] + n31 * te[8] + n41 * te[12];
-
-                if (det == 0) {
-                    var msg = "mat4.getInverse: can't invert matrix, determinant is 0";
-                    console.warn(msg);
-                    return _mat4_identity(self);
-                }
-
-                return _mat4_multiply_scalar(self, 1 / det);
-            }
-        );
 
         $loc.translate = NOT_IMPLEMENTED("mat4.translate");
         $loc.rotateX = NOT_IMPLEMENTED("mat4.rotateX");

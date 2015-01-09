@@ -103,8 +103,6 @@ var $builtinmodule = function(name)
         self.gl = gl;
         self.canvas = canvas;
 
-        console.log(gl.__proto__);
-
         // Copy symbolic constants and functions from native WebGL, encapsulating where necessary.
         for (var k in gl.__proto__) {
             // To bypass a bug in mozilla's implementation.  We don't need access to canvas from here
@@ -142,7 +140,11 @@ var $builtinmodule = function(name)
             }
           }
         }
-        gl.clearColor(100.0/255.0, 149.0/255.0, 237.0/255.0, 1.0);
+
+        Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str("FALSE"), false);
+        Sk.abstr.objectSetItem(self['$d'], new Sk.builtin.str("TRUE"), true);
+
+        gl.clearColor(.85, .85, .85, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
       }
     );
@@ -199,22 +201,9 @@ var $builtinmodule = function(name)
 
     $loc.uniformMatrix4fv = new Sk.builtin.func(
       function(self, location, transpose, values) {
-        self.gl.uniformMatrix4fv(Sk.builtin.asnum$(location), transpose, values.v);
+        self.gl.uniformMatrix4fv(Sk.builtin.asnum$(location), transpose.v, values.v);
       }
     );
-
-    $loc.setDrawFunc = new Sk.builtin.func(function(self, func) {
-      var startTime = (new Date()).getTime();
-      var intervalId = setInterval(
-        function() {
-          Sk.misceval.callsim(func, self, (new Date()).getTime() - startTime);
-        }, 1000.0 / 60.0); // 60 fps
-    });
-
-    // The following callback methods are modeled after GLUT.
-    $loc.setDisplayFunc = new Sk.builtin.func(function(self, func) {
-      Sk.misceval.callsim(func, self);
-    });
 
   }, 'Context', []);
 
