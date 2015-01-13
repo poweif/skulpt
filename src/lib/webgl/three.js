@@ -165,7 +165,7 @@ var $builtinmodule = function(name)
             return new Sk.builtin.str("[" + copy.join(', ') + "]");
         });
     }, 'arrayi', []);
-    
+
 
     mod.vec3 = Sk.misceval.buildClass(mod, function($gbl, $loc) {
         $loc.__init__ = new Sk.builtin.func(
@@ -859,7 +859,7 @@ var $builtinmodule = function(name)
 
         te[0] = n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 - n22 * n34 * n43 -
             n23 * n32 * n44 + n22 * n33 * n44;
-        
+
         te[4] = n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 + n12 * n34 * n43 +
             n13 * n32 * n44 - n12 * n33 * n44;
 
@@ -868,28 +868,28 @@ var $builtinmodule = function(name)
 
         te[12] = n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 + n12 * n24 * n33 +
             n13 * n22 * n34 - n12 * n23 * n34;
-        
+
         te[1] = n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 +
             n23 * n31 * n44 - n21 * n33 * n44;
-        
+
         te[5] = n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 - n11 * n34 * n43 -
             n13 * n31 * n44 + n11 * n33 * n44;
-        
+
         te[9] = n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 + n11 * n24 * n43 +
             n13 * n21 * n44 - n11 * n23 * n44;
-        
+
         te[13] = n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 - n11 * n24 * n33 -
             n13 * n21 * n34 + n11 * n23 * n34;
-        
+
         te[2] = n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 - n21 * n34 * n42 -
             n22 * n31 * n44 + n21 * n32 * n44;
-        
+
         te[6] = n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 + n11 * n34 * n42 +
             n12 * n31 * n44 - n11 * n32 * n44;
-        
+
         te[10] = n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 - n11 * n24 * n42 -
             n12 * n21 * n44 + n11 * n22 * n44;
-        
+
         te[14] = n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 + n11 * n24 * n32 +
             n12 * n21 * n34 - n11 * n22 * n34;
         te[3] = n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 + n21 * n33 * n42 +
@@ -900,15 +900,15 @@ var $builtinmodule = function(name)
             n12 * n21 * n43 - n11 * n22 * n43;
         te[15] = n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 - n11 * n23 * n32 -
             n12 * n21 * n33 + n11 * n22 * n33;
-        
+
         var det = n11 * te[0] + n21 * te[4] + n31 * te[8] + n41 * te[12];
-        
+
         if (det == 0) {
             var msg = "mat4.getInverse: can't invert matrix, determinant is 0";
             console.warn(msg);
             return _mat4_identity(self);
         }
-        
+
         return _mat4_multiply_scalar(self, 1 / det);
     }
 

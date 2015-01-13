@@ -118,6 +118,7 @@ var $builtinmodule = function(name)
               case 'bufferData':
               case 'clearColor':
               case 'drawArrays':
+              case 'drawElements':
               case 'getAttribLocation':
               case 'getUniformLocation':
               case 'shaderSource':
@@ -187,9 +188,26 @@ var $builtinmodule = function(name)
       }
     );
 
+    $loc.drawElements = new Sk.builtin.func(
+      function(self, mode, count, type, offset) {
+          self.gl.drawElements(
+              Sk.builtin.asnum$(mode),
+              Sk.builtin.asnum$(count),
+              type,
+              Sk.builtin.asnum$(offset));
+      }
+    );
+
+
     $loc.vertexAttribPointer = new Sk.builtin.func(
       function(self, index, size, type, normalized, stride, dunno) {
-        self.gl.vertexAttribPointer(index, Sk.builtin.asnum$(size), Sk.builtin.asnum$(type), normalized, Sk.builtin.asnum$(stride), Sk.builtin.asnum$(dunno));
+          self.gl.vertexAttribPointer(
+              Sk.builtin.asnum$(index),
+              Sk.builtin.asnum$(size),
+              type,
+              normalized,
+              Sk.builtin.asnum$(stride),
+              Sk.builtin.asnum$(dunno));
       }
     );
 
