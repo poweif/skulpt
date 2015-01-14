@@ -2,6 +2,13 @@ var $builtinmodule = function(name)
 {
     var mod = {};
 
+    var _XYZ = 'XYZ';
+    var _YZX = 'YZX';
+    var _ZXY = 'ZXY';
+    var _XZY = 'XZY';
+    var _YXZ = 'YXZ';
+    var _ZYX = 'ZYX';
+
     var NOT_IMPLEMENTED = function(funcName) {
         return new Sk.builtin.func(
             function(self) {
@@ -16,6 +23,12 @@ var $builtinmodule = function(name)
     };
     var _pyint = function(x) {
         return new Sk.builtin.nmber(x, Sk.builtin.nmber.int$);
+    };
+
+    var _pybool = function(b) {
+        if (b)
+            return Sk.builtin.bool.true$;
+        return Sk.builtin.bool.false$;
     };
 
     var _math_clamp = function(x, a, b) {
@@ -100,6 +113,29 @@ var $builtinmodule = function(name)
         self.v.x =(e[0] * x + e[4] * y + e[8]  * z + e[12]) * d;
         self.v.y =(e[1] * x + e[5] * y + e[9]  * z + e[13]) * d;
         self.v.z =(e[2] * x + e[6] * y + e[10] * z + e[14]) * d;
+        return self;
+    };
+
+    var _v3_apply_quaternion = function(self, q) {
+        var x = self.v.x;
+        var y = self.v.y;
+        var z = self.v.z;
+
+        var qx = q.v.x;
+        var qy = q.v.y;
+        var qz = q.v.z;
+        var qw = q.v.w;
+
+        // calculate quat * vector
+        var ix =  qw * x + qy * z - qz * y;
+        var iy =  qw * y + qz * x - qx * z;
+        var iz =  qw * z + qx * y - qy * x;
+        var iw = - qx * x - qy * y - qz * z;
+
+        // calculate result * inverse quat
+        self.v.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
+        self.v.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
+        self.v.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;
         return self;
     };
 
@@ -341,33 +377,9 @@ var $builtinmodule = function(name)
         );
 
         $loc.applyMatrix4 = new Sk.builtin.func(_v3_apply_matrix4);
-
         $loc.applyProjection = new Sk.builtin.func(_v3_apply_projection);
+        $loc.applyQuaternion = new Sk.builtin.func(_v3_apply_quaternion);
 
-        $loc.applyQuaternion = new Sk.builtin.func(
-            function(self, q) {
-                var x = self.v.x;
-                var y = self.v.y;
-                var z = self.v.z;
-
-                var qx = q.v.x;
-                var qy = q.v.y;
-                var qz = q.v.z;
-                var qw = q.v.w;
-
-                // calculate quat * vector
-                var ix =  qw * x + qy * z - qz * y;
-                var iy =  qw * y + qz * x - qx * z;
-                var iz =  qw * z + qx * y - qy * x;
-                var iw = - qx * x - qy * y - qz * z;
-
-                // calculate result * inverse quat
-                self.v.x = ix * qw + iw * - qx + iy * - qz - iz * - qy;
-                self.v.y = iy * qw + iw * - qy + iz * - qx - ix * - qz;
-                self.v.z = iz * qw + iw * - qz + ix * - qy - iy * - qx;
-                return self;
-            }
-        );
 
         $loc.project = NOT_IMPLEMENTED("vec3.project");
         $loc.unproject = NOT_IMPLEMENTED("vec3.unproject");
@@ -629,9 +641,7 @@ var $builtinmodule = function(name)
 
         $loc.equals = new Sk.builtin.func(
             function(self, v) {
-                if (v.v.x === self.v.x && v.v.y === self.v.y && v.v.z === self.v.z)
-                    return Sk.builtin.bool.true$;
-                return Sk.builtin.bool.false$;
+                return _pybool(v.v.x === self.v.x && v.v.y === self.v.y && v.v.z === self.v.z);
             }
         );
 
@@ -650,9 +660,9 @@ var $builtinmodule = function(name)
             function(self, py_array, py_offset) {
                 var off = _jsnum(py_offset);
                 var array = py_array.v;
-                self.v.x = array[off];
-                self.v.y = array[off + 1];
-                self.v.z = array[off + 2];
+                array[off] = self.v.x;
+                array[off + 1] = self.v.y;
+                array[off + 2] = self.v.z;
                 return self;
             }
         );
@@ -1019,7 +1029,7 @@ var $builtinmodule = function(name)
                 var c = Math.cos(y), d = Math.sin(y);
                 var e = Math.cos(z), f = Math.sin(z);
 
-                if (euler.v.order === 'XYZ') {
+                if (euler.v.order === _XYZ) {
                     var ae = a * e, af = a * f, be = b * e, bf = b * f;
                     te[0] = c * e;
                     te[4] = - c * f;
@@ -1031,7 +1041,7 @@ var $builtinmodule = function(name)
                     te[6] = be + af * d;
                     te[10] = a * c;
 
-                } else if (euler.v.order === 'YXZ') {
+                } else if (euler.v.order === _YXZ) {
                     var ce = c * e, cf = c * f, de = d * e, df = d * f;
                     te[0] = ce + df * b;
                     te[4] = de * b - cf;
@@ -1043,7 +1053,7 @@ var $builtinmodule = function(name)
                     te[6] = df + ce * b;
                     te[10] = a * c;
 
-                } else if (euler.v.order === 'ZXY') {
+                } else if (euler.v.order === _ZXY) {
                     var ce = c * e, cf = c * f, de = d * e, df = d * f;
 
                     te[0] = ce - df * b;
@@ -1057,7 +1067,7 @@ var $builtinmodule = function(name)
                     te[2] = - a * d;
                     te[6] = b;
                     te[10] = a * c;
-                } else if (euler.v.order === 'ZYX') {
+                } else if (euler.v.order === _ZYX) {
                     var ae = a * e, af = a * f, be = b * e, bf = b * f;
 
                     te[0] = c * e;
@@ -1071,7 +1081,7 @@ var $builtinmodule = function(name)
                     te[2] = - d;
                     te[6] = b * c;
                     te[10] = a * c;
-                } else if (euler.v.order === 'YZX') {
+                } else if (euler.v.order === _YZX) {
                     var ac = a * c, ad = a * d, bc = b * c, bd = b * d;
 
                     te[0] = c * e;
@@ -1086,7 +1096,7 @@ var $builtinmodule = function(name)
                     te[6] = ad * f + bc;
                     te[10] = ac - bd * f;
 
-                } else if (euler.v.order === 'XZY') {
+                } else if (euler.v.order === _XZY) {
                     var ac = a * c, ad = a * d, bc = b * c, bd = b * d;
 
                     te[0] = c * e;
@@ -1544,6 +1554,672 @@ var $builtinmodule = function(name)
             }
         );
     }, 'mat4', []);
+
+    _quat_conjugate = function(self) {
+        self.v.x *= - 1;
+        self.v.y *= - 1;
+        self.v.z *= - 1;
+        return self;
+    };
+
+    _quat_length_sq =  function(sef) {
+        return self.v.x * self.v.x + self.v.y * self.v.y + self.v.z * self.v.z +
+            self.v.w * self.v.w;
+    },
+
+    _quat_length = function(self) {
+        return Math.sqrt(
+            self.v.x * self.v.x + self.v.y * self.v.y + self.v.z * self.v.z + self.v.w * self.v.w);
+    },
+
+    _quat_normalize = function(self) {
+        var l = _quat_length(self);
+        if (l === 0) {
+            self.v.x = 0;
+            self.v.y = 0;
+            self.v.z = 0;
+            self.v.w = 1;
+        } else {
+            l = 1 / l;
+            self.v.x = self.v.x * l;
+            self.v.y = self.v.y * l;
+            self.v.z = self.v.z * l;
+            self.v.w = self.v.w * l;
+        }
+        return self;
+    };
+
+    _quat_multiply_quaternions = function(self, a, b) {
+        // from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/code/
+        //  index.htm
+
+        var qax = a.v.x, qay = a.v.y, qaz = a.v.z, qaw = a.v.w;
+        var qbx = b.v.x, qby = b.v.y, qbz = b.v.z, qbw = b.v.w;
+
+        self.v.x = qax * qbw + qaw * qbx + qay * qbz - qaz * qby;
+        self.v.y = qay * qbw + qaw * qby + qaz * qbx - qax * qbz;
+        self.v.z = qaz * qbw + qaw * qbz + qax * qby - qay * qbx;
+        self.v.w = qaw * qbw - qax * qbx - qay * qby - qaz * qbz;
+
+        return self;
+    };
+
+    _quat_copy = function(self, quaternion) {
+        self.v.x = quaternion.v.x;
+        self.v.y = quaternion.v.y;
+        self.v.z = quaternion.v.z;
+        self.v.w = quaternion.v.w;
+        return self;
+    };
+
+    _quat_new = function() {
+        return {v: {x: 0, y: 0, z: 0, w: 0}};
+    };
+
+    _quat_set_from_euler = function(self, euler) {
+        // http://www.mathworks.com/matlabcentral/fileexchange/
+        //  20696-function-to-convert-between-dcm-euler-angles-quaternions-and-euler-vectors/
+        //  content/SpinCalc.m
+
+        var c1 = Math.cos(euler.v.x / 2);
+        var c2 = Math.cos(euler.v.y / 2);
+        var c3 = Math.cos(euler.v.z / 2);
+        var s1 = Math.sin(euler.v.x / 2);
+        var s2 = Math.sin(euler.v.y / 2);
+        var s3 = Math.sin(euler.v.z / 2);
+
+        if (euler.v.order === _XYZ) {
+            self.v.x = s1 * c2 * c3 + c1 * s2 * s3;
+            self.v.y = c1 * s2 * c3 - s1 * c2 * s3;
+            self.v.z = c1 * c2 * s3 + s1 * s2 * c3;
+            self.v.w = c1 * c2 * c3 - s1 * s2 * s3;
+        } else if (euler.v.order === _YXZ) {
+            self.v.x = s1 * c2 * c3 + c1 * s2 * s3;
+            self.v.y = c1 * s2 * c3 - s1 * c2 * s3;
+            self.v.z = c1 * c2 * s3 - s1 * s2 * c3;
+            self.v.w = c1 * c2 * c3 + s1 * s2 * s3;
+        } else if (euler.v.order === _ZXY) {
+            self.v.x = s1 * c2 * c3 - c1 * s2 * s3;
+            self.v.y = c1 * s2 * c3 + s1 * c2 * s3;
+            self.v.z = c1 * c2 * s3 + s1 * s2 * c3;
+            self.v.w = c1 * c2 * c3 - s1 * s2 * s3;
+        } else if (euler.v.order === _ZYX) {
+            self.v.x = s1 * c2 * c3 - c1 * s2 * s3;
+            self.v.y = c1 * s2 * c3 + s1 * c2 * s3;
+            self.v.z = c1 * c2 * s3 - s1 * s2 * c3;
+            self.v.w = c1 * c2 * c3 + s1 * s2 * s3;
+        } else if (euler.v.order === _YZX) {
+            self.v.x = s1 * c2 * c3 + c1 * s2 * s3;
+            self.v.y = c1 * s2 * c3 + s1 * c2 * s3;
+            self.v.z = c1 * c2 * s3 - s1 * s2 * c3;
+            self.v.w = c1 * c2 * c3 - s1 * s2 * s3;
+        } else if (euler.v.order === _XZY) {
+            self.v.x = s1 * c2 * c3 - c1 * s2 * s3;
+            self.v.y = c1 * s2 * c3 - s1 * c2 * s3;
+            self.v.z = c1 * c2 * s3 + s1 * s2 * c3;
+            self.v.w = c1 * c2 * c3 + s1 * s2 * s3;
+        }
+
+        return self;
+    };
+
+    mod.quat = Sk.misceval.buildClass(mod, function($gbl, $loc) {
+        $loc.__init__ = new Sk.builtin.func(
+            function(self, x, y, z, w) {
+                self.v.x = _jsnum(x) || 0;
+                self.v.y = _jsnum(y) || 0;
+                self.v.z = _jsnum(z) || 0;
+                self.v.w = (w !== undefined) ? _jsnum(w) : 1;
+            }
+        );
+
+        $loc.setX = new Sk.builtin.func(
+            function(self, v) {
+                self.v.x = _jsnum(v);
+                return self;
+            }
+        );
+
+        $loc.setY = new Sk.builtin.func(
+            function(self, v) {
+                self.v.y = _jsnum(v);
+                return self;
+            }
+        );
+
+        $loc.setZ = new Sk.builtin.func(
+            function(self, v) {
+                self.v.z = _jsnum(v);
+                return self;
+            }
+        );
+
+        $loc.setW = new Sk.builtin.func(
+            function(self, v) {
+                self.v.w = _jsnum(v);
+                return self;
+            }
+        );
+
+        $loc.x = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(self.v.x);
+            }
+        );
+
+        $loc.y = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(self.v.y);
+            }
+        );
+
+        $loc.z = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(self.v.z);
+            }
+        );
+
+        $loc.w = new Sk.builtin.func(
+            function(self, v) {
+                return _pyfloat(self.v.w);
+            }
+        );
+
+        $loc.set = new Sk.builtin.func(
+            function(self, x, y, z, w) {
+                self.v.x = x;
+                self.v.y = y;
+                self.v.z = z;
+                self.v.w = w;
+                return self;
+            }
+        );
+
+        $loc.copy = new Sk.builtin.func(_quat_copy);
+
+        $loc.setFromEuler = new Sk.builtin.func(_set_from_euler);
+
+        $loc.setFromAxisAngle = new Sk.builtin.func(
+            function(self, axis, py_angle) {
+                // http://www.euclideanspace.com/maths/geometry/rotations/conversions
+                //  /angleToQuaternion/index.htm
+
+                // assumes axis is normalized
+                var angle = _jsnum(py_angle);
+                var halfAngle = angle / 2;
+                var s = Math.sin(halfAngle);
+
+                self.v.x = axis.v.x * s;
+                self.v.y = axis.v.y * s;
+                self.v.z = axis.v.z * s;
+                self.v.w = Math.cos(halfAngle);
+
+                return self;
+            }
+        );
+
+        $loc.setFromRotationMatrix = new Sk.builtin.func(
+            function(self, m) {
+                // http://www.euclideanspace.com/maths/geometry/rotations/conversions
+                //  /matrixToQuaternion/index.htm
+
+                // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+
+                var te = m.v;
+                var m11 = te[0], m12 = te[4], m13 = te[8],
+                    m21 = te[1], m22 = te[5], m23 = te[9],
+                    m31 = te[2], m32 = te[6], m33 = te[10];
+                var trace = m11 + m22 + m33,
+                var s;
+
+                if (trace > 0) {
+                    s = 0.5 / Math.sqrt(trace + 1.0);
+
+                    self.v.w = 0.25 / s;
+                    self.v.x = (m32 - m23) * s;
+                    self.v.y = (m13 - m31) * s;
+                    self.v.z = (m21 - m12) * s;
+                } else if (m11 > m22 && m11 > m33) {
+                    s = 2.0 * Math.sqrt(1.0 + m11 - m22 - m33);
+
+                    self.v.w = (m32 - m23) / s;
+                    self.v.x = 0.25 * s;
+                    self.v.y = (m12 + m21) / s;
+                    self.v.z = (m13 + m31) / s;
+                } else if (m22 > m33) {
+                    s = 2.0 * Math.sqrt(1.0 + m22 - m11 - m33);
+
+                    self.v.w = (m13 - m31) / s;
+                    self.v.x = (m12 + m21) / s;
+                    self.v.y = 0.25 * s;
+                    self.v.z = (m23 + m32) / s;
+                } else {
+                    s = 2.0 * Math.sqrt(1.0 + m33 - m11 - m22);
+
+                    self.v.w = (m21 - m12) / s;
+                    self.v.x = (m13 + m31) / s;
+                    self.v.y = (m23 + m32) / s;
+                    self.v.z = 0.25 * s;
+                }
+                return self;
+            }
+        );
+
+        $loc.setFromUnitVectors = function() {
+            // http://lolengine.net/blog/2014/02/24/quaternion-from-two-vectors-final
+            // assumes direction vectors vFrom and vTo are normalized
+            var v1, r;
+            var EPS = 0.000001;
+
+            return new Sk.builtin.func(
+                function(self, vFrom, vTo) {
+                    if (v1 === undefined) v1 = _v3_new();
+                    r = _v3_dot(vFrom, vTo) + 1;
+                    if (r < EPS) {
+                        r = 0;
+                        if (Math.abs(vFrom.v.x) > Math.abs(vFrom.v.z)) {
+                            v1.set(-vFrom.v.y, vFrom.v.x, 0);
+                        } else {
+                            v1.set(0, -vFrom.v.z, vFrom.v.y);
+                        }
+                    } else {
+                        _v3_cross_vectors(v1, vFrom, vTo);
+                    }
+
+                    self.v.x = v1.v.x;
+                    self.v.y = v1.v.y;
+                    self.v.z = v1.v.z;
+                    self.v.w = r;
+
+                    self.normalize();
+
+                    return self;
+                }
+            );
+        }();
+
+        $loc.inverse = new Sk.builtin.func(
+            function(self) {
+                return _quat_normalize(_quat_conjugate(self));
+            }
+        );
+
+        $loc.conjugate = new Sk.builtin.func(
+            function(self) {
+                return _quat_conjugate(self);
+            }
+        );
+
+        $loc.dot = new Sk.builtin.func(
+            function(self, v) {
+                return self.v.x * v.v.x + self.v.y * v.v.y + self.v.z * v.v.z + self.v.w * v.v.w;
+            }
+        );
+
+        $loc.lengthSq = new Sk.builtin.func(_quat_length_sq);
+        $loc.length = new Sk.builtin.func(_quat_length);
+        $loc.normalize = new Sk.builtin.func(_quat_normalize);
+
+        $loc.multiply = new Sk.builtin.func(
+            function (self, p) {
+                return _quat_multiply_quaternions(self, self, q);
+            }
+        );
+
+
+        $loc.multiplyQuaternions = new Sk.builtin.func(_quat_multiply_quaternions);
+
+        $loc.multiplyVector3 = new Sk.builtin.func(
+            function (self, vector) {
+                _v3_apply_quaternion(vector, self);
+            }
+        );
+
+        $loc.slerp = new Sk.builtin.func(
+            function(self, qb, py_t) {
+                var t = _jsnum(py_t);
+                if (t === 0) return self;
+                if (t === 1) return _quat_copy(self, qb);
+
+                var x = self.v.x, y = self.v.y, z = self.v.z, w = self.v.w;
+
+                // http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
+
+                var cosHalfTheta = w * qb.v.w + x * qb.v.x + y * qb.v.y + z * qb.v.z;
+
+                if (cosHalfTheta < 0) {
+                    self.v.w = -qb.v.w;
+                    self.v.x = -qb.v.x;
+                    self.v.y = -qb.v.y;
+                    self.v.z = -qb.v.z;
+                    cosHalfTheta = -cosHalfTheta;
+                } else {
+                    _quat_copy(self, qb);
+                }
+
+                if (cosHalfTheta >= 1.0) {
+                    self.v.w = w;
+                    self.v.x = x;
+                    self.v.y = y;
+                    self.v.z = z;
+                    return self;
+                }
+
+                var halfTheta = Math.acos(cosHalfTheta);
+                var sinHalfTheta = Math.sqrt(1.0 - cosHalfTheta * cosHalfTheta);
+
+                if (Math.abs(sinHalfTheta) < 0.001) {
+                    self.v.w = 0.5 * (w + self.v.w);
+                    self.v.x = 0.5 * (x + self.v.x);
+                    self.v.y = 0.5 * (y + self.v.y);
+                    self.v.z = 0.5 * (z + self.v.z);
+                    return self;
+                }
+
+                var ratioA = Math.sin((1 - t) * halfTheta) / sinHalfTheta,
+                ratioB = Math.sin(t * halfTheta) / sinHalfTheta;
+
+                self.v.w = (w * ratioA + self.v.w * ratioB);
+                self.v.x = (x * ratioA + self.v.x * ratioB);
+                self.v.y = (y * ratioA + self.v.y * ratioB);
+                self.v.z = (z * ratioA + self.v.z * ratioB);
+                return self;
+            }
+        );
+
+        $loc.equals = new Sk.builtin.func(
+            function(self, quaternion) {
+                return _pybool((quaternion.v.x === self.v.x) && (quaternion.v.y === self.v.y) &&
+                               (quaternion.v.z === self.v.z) && (quaternion.v.w === self.v.w));
+            }
+        );
+
+        $loc.fromArray = new Sk.builtin.func(
+            function(self, py_array, py_offset) {
+                var offset = 0;
+                if (py_offset !== undefined)
+                    offset = _jsnum(py_offset);
+
+                var array = py_array.v;
+                self.v.x = array[offset];
+                self.v.y = array[offset + 1];
+                self.v.z = array[offset + 2];
+                self.v.w = array[offset + 3];
+                return self;
+            }
+        );
+
+        $loc.toArray = new Sk.builtin.func(
+            function(self, py_array, py_offset) {
+                var array = py_array.v;
+                var offset = _jsnum(py_offset);
+                array[offset] = self.v.x;
+                array[offset + 1] = self.v.y;
+                array[offset + 2] = self.v.z;
+                array[offset + 3] = self.v.w;
+                return array;
+            }
+        );
+
+        $loc.clone = new Sk.builtin.func(
+            function(self) {
+                return Sk.misceval.callsim(
+                    mod.quat, _pyfloat(self.v.x), _pyfloat(self.v.y), _pyfloat(self.v.z),
+                    _pyfloat(self.v.w));
+            }
+        );
+
+    }, 'quat', []);
+
+    mod.euler = Sk.misceval.buildClass(mod, function($gbl, $loc) {
+        $loc.XYZ = _XYZ;
+        $loc.YZX = _YZX;
+        $loc.ZXY = _ZXY;
+        $loc.XZY = _XZY;
+        $loc.YXZ = _YXZ;
+        $loc.ZYX = _ZYX;
+
+        $loc.__init__ = new Sk.builtin.func(
+            function(self, x, y, z, order) {
+                self.v.x = _jsnum(x) || 0;
+                self.v.y = _jsnum(y) || 0;
+                self.v.z = _jsnum(z) || 0;
+                self.v.order = order || _XYZ;
+            }
+        );
+
+
+        $loc.x = new Sk.builtin.func(
+            function(self) {
+                return self.v.x;
+            }
+        );
+
+        $loc.y = new Sk.builtin.func(
+            function(self) {
+                return self.v.y;
+            }
+        );
+
+        $loc.z = new Sk.builtin.func(
+            function(self) {
+                return self.v.z;
+            }
+        );
+
+        $loc.order = new Sk.builtin.func(
+            function(self) {
+                return self.v.order;
+            }
+        );
+
+        $loc.setX = new Sk.builtin.func(
+            function(self, v) {
+                self.v.x = _jsnum(v);
+                return self;
+            }
+        );
+
+        $loc.setY = new Sk.builtin.func(
+            function(self, v) {
+                self.v.y = _jsnum(v);
+                return self;
+            }
+        );
+
+        $loc.setZ = new Sk.builtin.func(
+            function(self, v) {
+                self.v.z = _jsnum(v);
+                return self;
+            }
+        );
+
+        $loc.setOrder = new Sk.builtin.func(
+            function(self, v) {
+                self.v.order = v;
+                return self;
+            }
+        );
+
+        $loc.set = new Sk.builtin.func(
+            function(self, x, y, z, order) {
+                self.v.x = _jsnum(x);
+                self.v.y = _jsnum(y);
+                self.v.z = _jsnum(z);
+                self.v.order = order || self.v.order;
+                return self;
+            }
+        );
+
+        $loc.copy = new Sk.builtin.func(
+            function(self, euler) {
+                self.v.x = euler.v.x;
+                self.v.y = euler.v.y;
+                self.v.z = euler.v.z;
+                self.v.order = euler.v.order;
+                return self;
+            }
+        );
+
+        $loc.setFromRotationMatrix = new Sk.builtin.func(
+            function(self, m, order) {
+                var clamp = _math_clamp;
+
+                // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+                var te = m.v;
+                var m11 = te[0], m12 = te[4], m13 = te[8];
+                var m21 = te[1], m22 = te[5], m23 = te[9];
+                var m31 = te[2], m32 = te[6], m33 = te[10];
+
+                order = order || self.v.order;
+
+                if (order === _XYZ) {
+                    self.v.y = Math.asin(clamp(m13, -1, 1));
+                    if (Math.abs(m13) < 0.99999) {
+                        self.v.x = Math.atan2(-m23, m33);
+                        self.v.z = Math.atan2(-m12, m11);
+                    } else {
+                        self.v.x = Math.atan2(m32, m22);
+                        self.v.z = 0;
+                    }
+                } else if (order === _YXZ) {
+                    self.v.x = Math.asin(- clamp(m23, -1, 1));
+                    if (Math.abs(m23) < 0.99999) {
+                        self.v.y = Math.atan2(m13, m33);
+                        self.v.z = Math.atan2(m21, m22);
+                    } else {
+                        self.v.y = Math.atan2(-m31, m11);
+                        self.v.z = 0;
+                    }
+                } else if (order === _ZXY) {
+                    self.v.x = Math.asin(clamp(m32, -1, 1));
+                    if (Math.abs(m32) < 0.99999) {
+                        self.v.y = Math.atan2(-m31, m33);
+                        self.v.z = Math.atan2(-m12, m22);
+                    } else {
+                        self.v.y = 0;
+                        self.v.z = Math.atan2(m21, m11);
+                    }
+                } else if (order === _ZYX) {
+                    self.v.y = Math.asin(-clamp(m31, -1, 1));
+                    if (Math.abs(m31) < 0.99999) {
+                        self.v.x = Math.atan2(m32, m33);
+                        self.v.z = Math.atan2(m21, m11);
+                    } else {
+                        self.v.x = 0;
+                        self.v.z = Math.atan2(-m12, m22);
+                    }
+                } else if (order === _YZX) {
+                    self.v.z = Math.asin(clamp(m21, -1, 1));
+                    if (Math.abs(m21) < 0.99999) {
+                        self.v.x = Math.atan2(-m23, m22);
+                        self.v.y = Math.atan2(-m31, m11);
+                    } else {
+                        self.v.x = 0;
+                        self.v.y = Math.atan2(m13, m33);
+                    }
+                } else if (order === _XZY) {
+                    self.v.z = Math.asin(- clamp(m12, -1, 1));
+                    if (Math.abs(m12) < 0.99999) {
+                        self.v.x = Math.atan2(m32, m22);
+                        self.v.y = Math.atan2(m13, m11);
+                    } else {
+                        self.v.x = Math.atan2(-m23, m33);
+                        self.v.y = 0;
+                    }
+                } else {
+                    console.log("euler: unsupported order");
+                }
+
+                self.v.order = order;
+                return self;
+            }
+        );
+
+        $loc.setFromQuaternion = new Sk.builtin.func(
+            function(self, q, order) {
+                var clamp = _math_clamp;
+
+                // q is assumed to be normalized
+
+                // http://www.mathworks.com/matlabcentral/fileexchange
+                //  /20696-function-to-convert-between-dcm-euler-angles-
+                //   quaternions-and-euler-vectors/content/SpinCalc.m
+
+                var qx = q.v.x;
+                var qy = q.v.y;
+                var qz = q.v.z;
+                var qw = q.v.w;
+
+                var sqx = qx * qx;
+                var sqy = qy * qy;
+                var sqz = qz * qz;
+                var sqw = qw * qw;
+
+                order = order || self.v.order;
+
+                if (order === _XYZ) {
+                    self.v.x = Math.atan2(2 * (qx * qw - qy * qz), (sqw - sqx - sqy + sqz));
+                    self.v.y = Math.asin(clamp(2 * (qx * qz + qy * qw), - 1, 1));
+                    self.v.z = Math.atan2(2 * (qz * qw - qx * qy), (sqw + sqx - sqy - sqz));
+                } else if (order === _YXZ) {
+                    self.v.x = Math.asin(clamp(2 * (qx * qw - qy * qz), - 1, 1));
+                    self.v.y = Math.atan2(2 * (qx * qz + qy * qw), (sqw - sqx - sqy + sqz));
+                    self.v.z = Math.atan2(2 * (qx * qy + qz * qw), (sqw - sqx + sqy - sqz));
+                } else if (order === _ZXY) {
+                    self.v.x = Math.asin(clamp(2 * (qx * qw + qy * qz), - 1, 1));
+                    self.v.y = Math.atan2(2 * (qy * qw - qz * qx), (sqw - sqx - sqy + sqz));
+                    self.v.z = Math.atan2(2 * (qz * qw - qx * qy), (sqw - sqx + sqy - sqz));
+                } else if (order === _ZYX) {
+                    self.v.x = Math.atan2(2 * (qx * qw + qz * qy), (sqw - sqx - sqy + sqz));
+                    self.v.y = Math.asin(clamp(2 * (qy * qw - qx * qz), - 1, 1));
+                    self.v.z = Math.atan2(2 * (qx * qy + qz * qw), (sqw + sqx - sqy - sqz));
+                } else if (order === _YZX) {
+                    self.v.x = Math.atan2(2 * (qx * qw - qz * qy), (sqw - sqx + sqy - sqz));
+                    self.v.y = Math.atan2(2 * (qy * qw - qx * qz), (sqw + sqx - sqy - sqz));
+                    self.v.z = Math.asin(clamp(2 * (qx * qy + qz * qw), - 1, 1));
+                } else if (order === _XZY) {
+                    self.v.x = Math.atan2(2 * (qx * qw + qy * qz), (sqw - sqx + sqy - sqz));
+                    self.v.y = Math.atan2(2 * (qx * qz + qy * qw), (sqw + sqx - sqy - sqz));
+                    self.v.z = Math.asin(clamp(2 * (qz * qw - qx * qy), - 1, 1));
+                } else {
+                    console.warn('THREE.Euler: .setFromQuaternion() given unsupported order: ' + order)
+                }
+
+                self.v.order = order;
+                return self;
+            }
+        );
+
+        $loc.reorder = function () {
+            var q = _quat_new();
+            return new Sk.builtin.func(
+                function(self, newOrder) {
+                    _quat_set_from_euler(q, self);
+                    _euler_set_from_quaternion(self, q, newOrder);
+                    return self;
+                }
+            );
+        }();
+
+        $loc.equals = new Sk.builtin.func(
+            function(self, euler) {
+                return _pybool((euler.v.x === self.v.x) && (euler._y === self.v.y) &&
+                               (euler.v.z === self.v.z) && (euler.v.order === self.v.order));
+            }
+        );
+
+        $loc.fromArray = NOT_IMPLEMENTED("euler.fromArray");
+        $loc.toArray = NOT_IMPLEMENTED("euler.toArray");
+
+        $loc.clone = new Sk.builtin.func(
+            function(self) {
+                return Sk.misceval.callsim(
+                    mod.euler, _pyfloat(self.v.x), _pyfloat(self.v.y), _pyfloat(self.v.z),
+                    self.v.order);
+            }
+        );
+    }, 'euler', []);
 
     return mod;
 }
