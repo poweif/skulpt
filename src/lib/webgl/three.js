@@ -1535,7 +1535,6 @@ var $builtinmodule = function(name)
 
         $loc.toArray = new Sk.builtin.func(
             function(self) {
-
 //                var te = self.v;
 //                return [
 //                    te[0], te[1], te[2], te[3],
@@ -1666,6 +1665,7 @@ var $builtinmodule = function(name)
     mod.quat = Sk.misceval.buildClass(mod, function($gbl, $loc) {
         $loc.__init__ = new Sk.builtin.func(
             function(self, x, y, z, w) {
+                self.v = {};
                 self.v.x = _jsnum(x) || 0;
                 self.v.y = _jsnum(y) || 0;
                 self.v.z = _jsnum(z) || 0;
@@ -1737,7 +1737,7 @@ var $builtinmodule = function(name)
 
         $loc.copy = new Sk.builtin.func(_quat_copy);
 
-        $loc.setFromEuler = new Sk.builtin.func(_set_from_euler);
+        $loc.setFromEuler = new Sk.builtin.func(_quat_set_from_euler);
 
         $loc.setFromAxisAngle = new Sk.builtin.func(
             function(self, axis, py_angle) {
@@ -1769,7 +1769,7 @@ var $builtinmodule = function(name)
                 var m11 = te[0], m12 = te[4], m13 = te[8],
                     m21 = te[1], m22 = te[5], m23 = te[9],
                     m31 = te[2], m32 = te[6], m33 = te[10];
-                var trace = m11 + m22 + m33,
+                var trace = m11 + m22 + m33;
                 var s;
 
                 if (trace > 0) {
@@ -1831,9 +1831,7 @@ var $builtinmodule = function(name)
                     self.v.z = v1.v.z;
                     self.v.w = r;
 
-                    self.normalize();
-
-                    return self;
+                    return _quat_normalize(self);
                 }
             );
         }();
@@ -1865,7 +1863,6 @@ var $builtinmodule = function(name)
                 return _quat_multiply_quaternions(self, self, q);
             }
         );
-
 
         $loc.multiplyQuaternions = new Sk.builtin.func(_quat_multiply_quaternions);
 
@@ -1968,7 +1965,6 @@ var $builtinmodule = function(name)
                     _pyfloat(self.v.w));
             }
         );
-
     }, 'quat', []);
 
     mod.euler = Sk.misceval.buildClass(mod, function($gbl, $loc) {
@@ -1981,6 +1977,7 @@ var $builtinmodule = function(name)
 
         $loc.__init__ = new Sk.builtin.func(
             function(self, x, y, z, order) {
+                self.v= {};
                 self.v.x = _jsnum(x) || 0;
                 self.v.y = _jsnum(y) || 0;
                 self.v.z = _jsnum(z) || 0;
@@ -2183,7 +2180,7 @@ var $builtinmodule = function(name)
                     self.v.y = Math.atan2(2 * (qx * qz + qy * qw), (sqw + sqx - sqy - sqz));
                     self.v.z = Math.asin(clamp(2 * (qz * qw - qx * qy), - 1, 1));
                 } else {
-                    console.warn('THREE.Euler: .setFromQuaternion() given unsupported order: ' + order)
+                    console.warn('webgl.three.euler: setFromQuaternion() given unsupported order: ' + order)
                 }
 
                 self.v.order = order;
@@ -2220,6 +2217,6 @@ var $builtinmodule = function(name)
             }
         );
     }, 'euler', []);
-
+/**/
     return mod;
 }

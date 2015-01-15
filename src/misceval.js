@@ -789,3 +789,4 @@ Sk.misceval.buildClass = function (globals, func, name, bases) {
     return klass;
 };
 goog.exportSymbol("Sk.misceval.buildClass", Sk.misceval.buildClass);
+
