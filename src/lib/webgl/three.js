@@ -241,7 +241,7 @@ var $builtinmodule = function(name)
             }
         );
 
-        $loc.setY = new Sk.builtin.func(
+        $loc.setZ = new Sk.builtin.func(
             function(self, z) {
                 self.v.z = _jsnum(z);
                 return self;
@@ -521,7 +521,7 @@ var $builtinmodule = function(name)
             }
         );
 
-        $loc.length = new Sk.builtin.func(
+        $loc.lengtho = new Sk.builtin.func(
             function(self) {
                 return _pyfloat(_v3_length(self));
             }
@@ -547,7 +547,7 @@ var $builtinmodule = function(name)
             }
         );
 
-        $loc.setLength = new Sk.builtin.func(
+        $loc.lerp = new Sk.builtin.func(
             function(self, v, pyalpha) {
                 var alpha = _jsnum(pyalpha);
                 self.v.x +=(v.v.x - self.v.x) * alpha;
@@ -1860,7 +1860,7 @@ var $builtinmodule = function(name)
 
         $loc.multiply = new Sk.builtin.func(
             function (self, p) {
-                return _quat_multiply_quaternions(self, self, q);
+                return _quat_multiply_quaternions(self, self, p);
             }
         );
 
