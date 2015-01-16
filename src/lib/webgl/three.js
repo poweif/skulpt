@@ -1673,6 +1673,13 @@ var $builtinmodule = function(name)
             }
         );
 
+        $loc.__repr__ = new Sk.builtin.func(
+            function(self) {
+                return new Sk.builtin.str(
+                    "(" + self.v.x + ", " + self.v.y + ", " + self.v.z + ", " +  self.v.w + ")");
+            }
+        );
+
         $loc.setX = new Sk.builtin.func(
             function(self, v) {
                 self.v.x = _jsnum(v);
@@ -1727,10 +1734,10 @@ var $builtinmodule = function(name)
 
         $loc.set = new Sk.builtin.func(
             function(self, x, y, z, w) {
-                self.v.x = x;
-                self.v.y = y;
-                self.v.z = z;
-                self.v.w = w;
+                self.v.x = _jsnum(x);
+                self.v.y = _jsnum(y);
+                self.v.z = _jsnum(z);
+                self.v.w = _jsnum(w);
                 return self;
             }
         );
@@ -1985,6 +1992,13 @@ var $builtinmodule = function(name)
             }
         );
 
+        $loc.__repr__ = new Sk.builtin.func(
+            function(self) {
+                return new Sk.builtin.str(
+                    "(" + self.v.x + ", " + self.v.y + ", " + self.v.z + ", " +
+                        self.v.order + ")");
+            }
+        );
 
         $loc.x = new Sk.builtin.func(
             function(self) {
