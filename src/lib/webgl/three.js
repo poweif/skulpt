@@ -164,13 +164,33 @@ var $builtinmodule = function(name)
 
     // From the original webgl.Float32Array David Holmes.
     mod.arrayf = Sk.misceval.buildClass(mod, function($gbl, $loc) {
+        var fromVec3s = function(vs) {
+            var fs = new Float32Array(vs.length * 3);
+            for (var i = 0; i < vs.length; i++) {
+                var ind = i * 3;
+                fs[ind] = vs[i].v.x;
+                fs[ind + 1] = vs[i].v.y;
+                fs[ind + 2] = vs[i].v.z;
+            }
+            return fs;
+        };
+
         $loc.__init__ = new Sk.builtin.func(function(self, data) {
             if (typeof data === "number") {
                 self.v = new Float32Array(data);
+                return;
+            } else if (Sk.abstr.typeName(data) === "list") {
+                var arr = data.v;
+                if (arr.length > 0) {
+                    if (Sk.abstr.typeName(arr[0]) === "vec3") {
+                        self.v = fromVec3s(data.v);
+                    } else {
+                        self.v = new Float32Array(Sk.ffi.remapToJs(data));
+                    }
+                }
+                return;
             }
-            else {
-                self.v = new Float32Array(Sk.ffi.remapToJs(data));
-            }
+            self.v = new Uint16Array(0);
         });
 
         $loc.__repr__ = new Sk.builtin.func(function(self) {
@@ -184,13 +204,36 @@ var $builtinmodule = function(name)
 
     // From the original webgl.Float32Array David Holmes.
     mod.arrayi = Sk.misceval.buildClass(mod, function($gbl, $loc) {
+        var fromTuples = function(is) {
+            var first = is[0].v;
+            var len = first.length;
+            var fs = new Uint16Array(is.length * len);
+            for (var i = 0; i < is.length; i++) {
+                var ind = i * len;
+                var ii = is[i];
+                for (var j = 0; j < len; j++) {
+                    fs[ind + j] = _jsnum(ii.v[j]);
+                }
+            }
+            return fs;
+        };
+
         $loc.__init__ = new Sk.builtin.func(function(self, data) {
             if (typeof data === "number") {
                 self.v = new Uint16Array(data);
+                return;
+            } else if (Sk.abstr.typeName(data) === "list") {
+                var arr = data.v;
+                if (arr.length > 0) {
+                    if (Sk.abstr.typeName(arr[0]) === "tuple") {
+                        self.v = fromTuples(data.v);
+                    } else {
+                        self.v = new Uint16Array(Sk.ffi.remapToJs(data));
+                    }
+                }
+                return;
             }
-            else {
-                self.v = new Uint16Array(Sk.ffi.remapToJs(data));
-            }
+            self.v = new Uint16Array(0);
         });
 
         $loc.__repr__ = new Sk.builtin.func(function(self) {
