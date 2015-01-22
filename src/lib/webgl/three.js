@@ -200,6 +200,12 @@ var $builtinmodule = function(name)
             }
             return new Sk.builtin.str("[" + copy.join(', ') + "]");
         });
+
+        $loc.len = new Sk.builtin.func(function(self) {
+            if (!self.v)
+                return _pyint(0);
+            return _pyint(self.v.length)
+        });
     }, 'arrayf', []);
 
     // From the original webgl.Float32Array David Holmes.
@@ -242,6 +248,11 @@ var $builtinmodule = function(name)
                 copy.push(self.v[i]);
             }
             return new Sk.builtin.str("[" + copy.join(', ') + "]");
+        });
+        $loc.len = new Sk.builtin.func(function(self) {
+            if (!self.v)
+                return _pyint(0);
+            return _pyint(self.v.length)
         });
     }, 'arrayi', []);
 
@@ -564,7 +575,7 @@ var $builtinmodule = function(name)
             }
         );
 
-        $loc.lengtho = new Sk.builtin.func(
+        $loc.len = new Sk.builtin.func(
             function(self) {
                 return _pyfloat(_v3_length(self));
             }
