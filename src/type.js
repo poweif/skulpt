@@ -61,12 +61,6 @@ Sk.builtin.type = function (name, bases, dict) {
                 Sk.misceval.apply(init, kwdict, varargseq, kws, args);
             }
 
-            if (bases) {
-                this["$d"].mp$ass_subscript(Sk.builtin.type.basesStr_, new Sk.builtin.tuple(bases));
-                this["$d"].mp$ass_subscript(Sk.builtin.type.mroStr_, mro);
-                this.tp$mro = Sk.builtin.type.buildMRO(klass);
-            }
-
             return this;
         };
 
@@ -154,6 +148,19 @@ Sk.builtin.type = function (name, bases, dict) {
         };
 
         klass.prototype.tp$name = name;
+
+        if (bases) {
+            //print("building mro for", name);
+            //for (var i = 0; i < bases.length; ++i)
+            //print("base[" + i + "]=" + bases[i].tp$name);
+            klass["$d"] = new Sk.builtin.dict([]);
+            klass["$d"].mp$ass_subscript(Sk.builtin.type.basesStr_, new Sk.builtin.tuple(bases));
+            mro = Sk.builtin.type.buildMRO(klass);
+            klass["$d"].mp$ass_subscript(Sk.builtin.type.mroStr_, mro);
+            klass.tp$mro = mro;
+            //print("mro result", Sk.builtin.repr(mro).v);
+        }
+
         klass.prototype.ob$type = klass;
         Sk.builtin.type.makeIntoTypeObj(name, klass);
 
