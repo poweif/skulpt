@@ -771,8 +771,24 @@ Sk.builtin.jsmillis = function jsmillis () {
     return now.valueOf();
 };
 
-Sk.builtin.superbi = function superbi () {
-    throw new Sk.builtin.NotImplementedError("super is not yet implemented, please report your use case as a github issue.");
+Sk.builtin.superbi = function superbi (type, obj) {
+    var mro = undefined;
+    if (type["$d"] && type["$d"].mp$subscript) {
+        mro = type["$d"].mp$subscript(Sk.builtin.type.mroStr_);
+    }
+    if (!mro) return;
+
+    console.log(mro.v);
+    for (var i = 0; i < mro.v.length; i++) {
+        if (mro.v[i] === type) {
+            console.log("this type: " + type.tp$name);
+        } else {
+            console.log("not the type: " + mro.v[i].tp$name);
+        }
+    }
+
+    console.log(type);
+    console.log(obj);
 };
 
 Sk.builtin.eval_ = function eval_ () {
