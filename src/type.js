@@ -59,6 +59,12 @@ Sk.builtin.type = function (name, bases, dict) {
                 // return should be None or throw a TypeError otherwise
                 args.unshift(this);
                 Sk.misceval.apply(init, kwdict, varargseq, kws, args);
+
+                // Inherit the mro of the class (type).
+                if (this.ob$type["$d"] && this.ob$type["$d"].mp$subscript) {
+                    var mro = this.ob$type["$d"].mp$subscript(Sk.builtin.type.mroStr_);
+                    this["$d"].mp$ass_subscript(Sk.builtin.type.mroStr_, mro);
+                }
             }
 
             return this;
@@ -149,16 +155,11 @@ Sk.builtin.type = function (name, bases, dict) {
 
         klass.prototype.tp$name = name;
 
+        var mro = undefined;
         if (bases) {
-            //print("building mro for", name);
-            //for (var i = 0; i < bases.length; ++i)
-            //print("base[" + i + "]=" + bases[i].tp$name);
             klass["$d"] = new Sk.builtin.dict([]);
             klass["$d"].mp$ass_subscript(Sk.builtin.type.basesStr_, new Sk.builtin.tuple(bases));
-            mro = Sk.builtin.type.buildMRO(klass);
-            klass["$d"].mp$ass_subscript(Sk.builtin.type.mroStr_, mro);
-            klass.tp$mro = mro;
-            //print("mro result", Sk.builtin.repr(mro).v);
+            klass["$d"].mp$ass_subscript(Sk.builtin.type.mroStr_, Sk.builtin.type.buildMRO(klass));
         }
 
         klass.prototype.ob$type = klass;
@@ -254,11 +255,14 @@ Sk.builtin.type.prototype.tp$setattr = function (name, value) {
 };
 
 Sk.builtin.type.typeLookup = function (type, name) {
-    var mro = type.tp$mro;
     var pyname = new Sk.builtin.str(name);
     var base;
     var res;
     var i;
+    var mro = undefined;
+    if (type["$d"] && type["$d"].mp$subscript) {
+        mro = type["$d"].mp$subscript(Sk.builtin.type.mroStr_);
+    }
 
     // todo; probably should fix this, used for builtin types to get stuff
     // from prototype

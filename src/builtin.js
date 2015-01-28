@@ -564,9 +564,12 @@ Sk.builtin.dir = function dir (x) {
     }
 
     // Add all class attributes
-    mro = x.tp$mro;
+    mro = undefined;
+    if (x["$d"] && x["$d"].mp$subscript) {
+        mro =  x["$d"].mp$subscript(Sk.builtin.type.mroStr_);
+    }
+
     if (mro) {
-        mro = x.tp$mro;
         for (i = 0; i < mro.v.length; ++i) {
             base = mro.v[i];
             for (prop in base) {
