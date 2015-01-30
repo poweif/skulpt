@@ -9,46 +9,37 @@ Sk.builtin.object = function () {
     return this;
 };
 
-/**
- * @return {undefined}
- */
-Sk.builtin.object.prototype.GenericGetAttr = function (name) {
+Sk.builtin.object.prototype.realGenericGetAttr = function (name, obj, tp) {
     var res;
     var f;
     var descr;
     var tp;
     goog.asserts.assert(typeof name === "string");
-
-    tp = this.ob$type;
-    goog.asserts.assert(tp !== undefined, "object has no ob$type!");
-
-    //print("getattr", tp.tp$name, name);
+    goog.asserts.assert(tp !== undefined, "object has no type!");
 
     descr = Sk.builtin.type.typeLookup(tp, name);
-
     // otherwise, look in the type for a descr
     if (descr !== undefined && descr !== null && descr.ob$type !== undefined) {
         f = descr.ob$type.tp$descr_get;
-        // todo;
-        //if (f && descr.tp$descr_set) // is a data descriptor if it has a set
-        //return f.call(descr, this, this.ob$type);
     }
 
     // todo; assert? force?
-    if (this["$d"]) {
-        if (this["$d"].mp$lookup) {
-            res = this["$d"].mp$lookup(new Sk.builtin.str(name));
+    if (obj["$d"]) {
+        if (obj["$d"].mp$lookup) {
+            res = obj["$d"].mp$lookup(new Sk.builtin.str(name));
         }
-        else if (this["$d"].mp$subscript) {
+        else if (obj["$d"].mp$subscript) {
             try {
-                res = this["$d"].mp$subscript(new Sk.builtin.str(name));
+                res = obj["$d"].mp$subscript(new Sk.builtin.str(name));
             } catch (x) {
                 res = undefined;
             }
         }
-        else if (typeof this["$d"] === "object") // todo; definitely the wrong place for this. other custom tp$getattr won't work on object -- bnm -- implemented custom __getattr__ in abstract.js
-        {
-            res = this["$d"][name];
+        else if (typeof obj["$d"] === "object") {
+            // todo; definitely the wrong place for this.
+            // other custom tp$getattr won't work on object
+            // -- bnm -- implemented custom __getattr__ in abstract.js
+            res = obj["$d"][name];
         }
         if (res !== undefined) {
             return res;
@@ -57,7 +48,7 @@ Sk.builtin.object.prototype.GenericGetAttr = function (name) {
 
     if (f) {
         // non-data descriptor
-        return f.call(descr, this, this.ob$type);
+        return f.call(descr, obj, tp);
     }
 
     if (descr !== undefined) {
@@ -66,6 +57,16 @@ Sk.builtin.object.prototype.GenericGetAttr = function (name) {
 
     return undefined;
 };
+
+goog.exportSymbol("Sk.builtin.object.prototype.realGenericGetAttr", Sk.builtin.object.prototype.realGenericGetAttr);
+
+/**
+ * @return {undefined}
+ */
+Sk.builtin.object.prototype.GenericGetAttr = function (name) {
+    return Sk.builtin.object.prototype.realGenericGetAttr(name, this, this.ob$type);
+};
+
 goog.exportSymbol("Sk.builtin.object.prototype.GenericGetAttr", Sk.builtin.object.prototype.GenericGetAttr);
 
 Sk.builtin.object.prototype.GenericSetAttr = function (name, value) {

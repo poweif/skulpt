@@ -771,24 +771,34 @@ Sk.builtin.jsmillis = function jsmillis () {
     return now.valueOf();
 };
 
-Sk.builtin.superbi = function superbi (type, obj) {
-    var mro = undefined;
-    if (type["$d"] && type["$d"].mp$subscript) {
-        mro = type["$d"].mp$subscript(Sk.builtin.type.mroStr_);
-    }
+Sk.builtin.superbi = function superbi (skipType, obj) {
+    var ret;
+    var mro;
+    var type;
+    var oldGetAttr;
+
+    mro = undefined;
+    if (skipType["$d"] && skipType["$d"].mp$subscript)
+        mro = skipType["$d"].mp$subscript(Sk.builtin.type.mroStr_);
     if (!mro) return;
 
-    console.log(mro.v);
+    type = null;
     for (var i = 0; i < mro.v.length; i++) {
-        if (mro.v[i] === type) {
-            console.log("this type: " + type.tp$name);
+        if (mro.v[i] === skipType) {
+            continue;
         } else {
-            console.log("not the type: " + mro.v[i].tp$name);
+            type = mro.v[i];
+            break;
         }
     }
+    if (!type) return;
 
-    console.log(type);
-    console.log(obj);
+    ret = new Sk.builtin.object();
+    ret.GenericGetAttr = ret.tp$getattr = function(name) {
+        return ret.realGenericGetAttr(name, obj, type);
+    };
+
+    return ret;
 };
 
 Sk.builtin.eval_ = function eval_ () {

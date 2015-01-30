@@ -400,7 +400,7 @@ var $builtinmodule = function(name)
 
         $loc.multiplyScalar = new Sk.builtin.func(
             function(self, scalar) {
-                return _v3_multiply_scalar(self, _pyfloat(scalar));
+                return _v3_multiply_scalar(self, _jsnum(scalar));
             }
         );
 
