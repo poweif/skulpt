@@ -10,15 +10,48 @@ var $builtinmodule = function(name)
                 self.left = 0;
                 self.top = 0;
 
+                self.runResize = null;
                 self.defaultResizeFunc = function() {
-                    var rect = self.canvas.getBoundingClientRect();
-                    self.left = rect.left;
-                    self.top = rect.top;
+                    if (self.runResize) {
+                        clearTimeout(self.runResize)
+                    }
+
+                    self.runResize = setTimeout(function() {
+                        console.log("running resize");
+                        var rect = self.canvas.getBoundingClientRect();
+                        self.left = rect.left;
+                        self.top = rect.top;
+                        self.runResize = null;
+                    }, 500);
                 };
                 self.resizeFunc = self.defaultResizeFunc;
                 self.resizeFunc();
 
-                window.addEventListener("resize", self.resizeFunc);
+                self.userMotionFunc = null;
+                self.userPassiveMotionFunc = null;
+
+                self.defaultMouseMoveFunc = function(ev) {
+                    if (ev.buttons !== 0 && self.userMotionFunc) {
+//                        console.log('drag ' + self.left + "  " + self.top + " " + ev.clientX + " " + ev.clientY);
+                        console.log('d ' + (ev.clientX - self.left) + "  " + (ev.clientY - self.top));
+                        Sk.misceval.callsim(
+                            self.userMotionFunc,
+                            self.gl,
+                            Sk.builtin.assk$(ev.clientX - self.left, Sk.builtin.nmber.int$),
+                            Sk.builtin.assk$(ev.clientY - self.top, Sk.builtin.nmber.int$)
+                        );
+                    } else if (self.userPassiveMotionFunc) {
+                        console.log('move');
+                        Sk.misceval.callsim(
+                            self.userPassiveMotionFunc,
+                            self.gl,
+                            Sk.builtin.assk$(ev.clientX - self.left, Sk.builtin.nmber.int$),
+                            Sk.builtin.assk$(ev.clientY - self.top, Sk.builtin.nmber.int$)
+                        );
+                    }
+                };
+
+                self.canvas.addEventListener("resize", self.resizeFunc);
 
                 self.gl = glcontext;
                 document.addEventListener('mousemove', function(ev) {
@@ -78,23 +111,19 @@ var $builtinmodule = function(name)
             }
         );
 
-        /*
-         * glut's mouse motion model is different from that of JS and WebGL. We just
-         * assume that motion callback is called for all mouse movement (pressed or
-         * unpressed)
-         */
         $loc.motionFunc = new Sk.builtin.func(
             function(self, func) {
-                self.canvas.onmousemove = function(ev) {
-                    if (ev.buttons !== 0) {
-                        Sk.misceval.callsim(
-                            func,
-                            self.gl,
-                            Sk.builtin.assk$(ev.clientX - self.left, Sk.builtin.nmber.int$),
-                            Sk.builtin.assk$(ev.clientY - self.top, Sk.builtin.nmber.int$)
-                        );
-                    }
-                };
+                self.userMotionFunc = func;
+                if (!self.canvas.onmousemove)
+                    self.canvas.onmousemove = self.defaultMouseMoveFunc;
+            }
+        );
+
+        $loc.passiveMotionFunc = new Sk.builtin.func(
+            function(self, func) {
+                self.userPassiveMotionFunc = func;
+                if (!self.canvas.onmousemove)
+                    self.canvas.onmousemove = self.defaultMouseMoveFunc;
             }
         );
 

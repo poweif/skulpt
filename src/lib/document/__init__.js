@@ -145,7 +145,6 @@ var $builtinmodule = function (name) {
         });
 
         $loc.__str__ = new Sk.builtin.func(function (self) {
-            console.log(self.v.tagName);
             return new Sk.builtin.str(self.v.tagName)
         })
 
