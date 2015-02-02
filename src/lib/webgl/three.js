@@ -450,8 +450,8 @@ var $builtinmodule = function(name)
         );
 
         $loc.divideScalar = new Sk.builtin.func(
-            function(self, pyscalar) {
-                return _v3_divide_scalar(self, _pyfloat(pyscalar));
+            function(self, scalar) {
+                return _v3_divide_scalar(self, _jsnum(scalar));
             }
         );
 
@@ -728,6 +728,566 @@ var $builtinmodule = function(name)
             }
         );
     }, 'vec3', []);
+
+    var _v4_sub_vectors = function(self, a, b) {
+        self.v.x = a.v.x - b.v.x;
+        self.v.y = a.v.y - b.v.y;
+        self.v.z = a.v.z - b.v.z;
+        self.v.w = a.v.w - b.v.w;
+        return self;
+    };
+
+    var _v4_multiply_scalar = function(self, s) {
+        self.v.x *= s;
+        self.v.y *= s;
+        self.v.z *= s;
+        self.v.w *= s;
+        return self;
+    };
+
+    var _v4_divide_scalar = function(self, s) {
+        if(s !== 0) {
+            var invs = 1 / s;
+            self.v.x *= invs;
+            self.v.y *= invs;
+            self.v.z *= invs;
+            self.v.w *= invs;
+        } else {
+            self.v.x = 0;
+            self.v.y = 0;
+            self.v.z = 0;
+            self.v.w = 0;
+        }
+        return self;
+    };
+
+    var _v4_dot = function(self, v) {
+        return self.v.x * v.v.x + self.v.y * v.v.y + self.v.z * v.v.z +
+            self.v.w * v.v.w;
+    };
+
+    var _v4_length = function(self) {
+        return Math.sqrt(self.v.x * self.v.x + self.v.y * self.v.y +
+                         self.v.z * self.v.z + self.v.w * self.v.w);
+    };
+
+    var _v4_normalize = function(self) {
+        return _v4_divide_scalar(self, _v4_length(self));
+    };
+
+    mod.vec4 = Sk.misceval.buildClass(mod, function($gbl, $loc) {
+        $loc.__init__ = new Sk.builtin.func(
+            function(self, x, y, z, w) {
+                // we can't afford parameter length checks, too expensive.
+                // Sk.builtin.pyCheckArgs("vec3()", arguments, 3, 3, true);
+                self.v = {};
+                self.v.x = _jsnum(x) || 0;
+                self.v.y = _jsnum(y) || 0;
+                self.v.z = _jsnum(z) || 0;
+                self.v.w = _jsnum(w) || 0;
+            }
+        );
+
+        $loc.__repr__ = new Sk.builtin.func(function(self) {
+            return new Sk.builtin.str("(" + self.v.x + ", " + self.v.y + ", " + self.v.z + ", " + self.v.w + ")");
+        });
+
+        $loc.set = new Sk.builtin.func(
+            function(self, x, y, z, w) {
+                // we can't afford parameter length checks, too expensive.
+                // Sk.builtin.pyCheckArgs("vec3.set", arguments, 3, 3, true);
+                return _v3_set(self, _jsnum(x), _jsnum(y), _jsnum(z), _jsnum(2));
+            }
+        );
+
+        $loc.setX = new Sk.builtin.func(
+            function(self, x) {
+                self.v.x = _jsnum(x);
+                return self;
+            }
+        );
+
+        $loc.setY = new Sk.builtin.func(
+            function(self, y) {
+                self.v.y = _jsnum(y);
+                return self;
+            }
+        );
+
+        $loc.setZ = new Sk.builtin.func(
+            function(self, z) {
+                self.v.z = _jsnum(z);
+                return self;
+            }
+        );
+
+        $loc.setW = new Sk.builtin.func(
+            function(self, w) {
+                self.v.w = _jsnum(w);
+                return self;
+            }
+        );
+
+        $loc.x = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(self.v.x);
+            }
+        );
+
+        $loc.y = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(self.v.y);
+            }
+        );
+
+        $loc.z = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(self.v.z);
+            }
+        );
+
+        $loc.w = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(self.v.w);
+            }
+        );
+
+        $loc.setComponent = new Sk.builtin.func(
+            function(self, index, value) {
+                switch(_jsnum(index)) {
+                case 0: self.v.x = _jsnum(value); break;
+                case 1: self.v.y = _jsnum(value); break;
+                case 2: self.v.z = _jsnum(value); break;
+                case 3: self.v.w = _jsnum(value); break;
+                default: throw new Error('index is out of range: ' + _jsnum(index));
+                }
+            }
+        );
+
+        $loc.getComponent = new Sk.builtin.func(
+            function(self, index) {
+                switch(_jsnum(index)) {
+                case 0: return _pyfloat(self.v.x);
+                case 1: return _pyfloat(self.v.y);
+                case 2: return _pyfloat(self.v.z);
+                case 3: return _pyfloat(self.v.w);
+                default: throw new Error('index is out of range: ' + _jsnum(index));
+                }
+            }
+        );
+
+        $loc.copy = new Sk.builtin.func(
+            function(self, v) {
+                self.v.x = v.v.x;
+                self.v.y = v.v.y;
+                self.v.z = v.v.z;
+                self.v.w = v.v.w;
+                return self;
+            }
+        );
+
+        $loc.add = new Sk.builtin.func(
+            function(self, v) {
+                self.v.x += v.v.x;
+                self.v.y += v.v.y;
+                self.v.z += v.v.z;
+                self.v.w += v.v.w;
+                return self;
+            }
+        );
+
+        $loc.addScalar = new Sk.builtin.func(
+            function(self, s) {
+                self.v.x += _jsnum(s);
+                self.v.y += _jsnum(s);
+                self.v.z += _jsnum(s);
+                self.v.w += _jsnum(s);
+                return self;
+            }
+        );
+
+        $loc.addVectors = new Sk.builtin.func(
+            function(self, a, b) {
+                self.v.x = a.v.x + b.v.x;
+                self.v.y = a.v.y + b.v.y;
+                self.v.z = a.v.z + b.v.z;
+                self.v.w = a.v.w + b.v.w;
+                return self;
+            }
+        );
+
+        $loc.sub = new Sk.builtin.func(
+            function(self, v) {
+                self.v.x -= v.v.x;
+                self.v.y -= v.v.y;
+                self.v.z -= v.v.z;
+                self.v.w -= v.v.w;
+                return self;
+            }
+        );
+
+        $loc.subVectors = new Sk.builtin.func(_v4_sub_vectors);
+
+        $loc.multiply = new Sk.builtin.func(
+            function(self, v) {
+                self.v.x *= v.v.x;
+                self.v.y *= v.v.y;
+                self.v.z *= v.v.z;
+                self.v.w *= v.v.w;
+                return self;
+            }
+        );
+
+        $loc.multiplyScalar = new Sk.builtin.func(
+            function(self, scalar) {
+                return _v4_multiply_scalar(self, _jsnum(scalar));
+            }
+        );
+
+        $loc.applyMatrix4 = new Sk.builtin.func(
+            function(self, m) {
+                var x = self.v.x;
+                var y = self.v.y;
+                var z = self.v.z;
+                var w = self.v.w;
+
+                var e = m.v;
+                self.v.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z + e[ 12 ] * w;
+                self.v.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z + e[ 13 ] * w;
+                self.v.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z + e[ 14 ] * w;
+                self.v.w = e[ 3 ] * x + e[ 7 ] * y + e[ 11 ] * z + e[ 15 ] * w;
+                return self;
+            }
+        );
+
+        $loc.divideScalar = new Sk.builtin.func(
+            function(self, scalar) {
+                return _v4_divide_scalar(self, _jsnum(scalar));
+            }
+        );
+
+        $loc.setAxisAngleFromQuaternion = new Sk.builtin.func(
+            function(self, pyq) {
+                // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
+                // q is assumed to be normalized
+                var q = pyq.v;
+                self.v.w = 2 * Math.acos( q.w );
+                var s = Math.sqrt( 1 - q.w * q.w );
+                if (s < 0.0001) {
+                    self.v.x = 1;
+                    self.v.y = 0;
+                    self.v.z = 0;
+                } else {
+                    self.v.x = q.x / s;
+                    self.v.y = q.y / s;
+                    self.v.z = q.z / s;
+                }
+                return self;
+            }
+        );
+
+        $loc.setAxisAngleFromRotationMatrix = new Sk.builtin.func(
+            function(self, m) {
+                // http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToAngle/index.htm
+                // assumes the upper 3x3 of m is a pure rotation matrix (i.e, unscaled)
+                var angle, x, y, z; // variables for result
+                var epsilon = 0.01; // margin to allow for rounding errors
+                var epsilon2 = 0.1; // margin to distinguish between 0 and 180 degrees
+                te = m.v;
+
+                var m11 = te[0], m12 = te[4], m13 = te[8],
+                m21 = te[1], m22 = te[5], m23 = te[9],
+                m31 = te[2], m32 = te[6], m33 = te[10];
+
+                if ((Math.abs(m12 - m21) < epsilon)
+                    && (Math.abs(m13 - m31) < epsilon)
+                    && (Math.abs(m23 - m32) < epsilon)) {
+                    // singularity found
+                    // first check for identity matrix which must have +1 for all terms
+                    // in leading diagonal and zero in other terms
+                    if ((Math.abs(m12 + m21) < epsilon2)
+                        && (Math.abs(m13 + m31) < epsilon2)
+                        && (Math.abs(m23 + m32) < epsilon2)
+                        && (Math.abs(m11 + m22 + m33 - 3) < epsilon2)) {
+                        // this singularity is identity matrix so angle = 0
+                        self.v.x = 1;
+                        self.v.y = self.v.z = self.v.w = 0;
+                        return self; // zero angle, arbitrary axis
+                    }
+                    // otherwise this singularity is angle = 180
+                    angle = Math.PI;
+                    var xx = (m11 + 1) / 2;
+                    var yy = (m22 + 1) / 2;
+                    var zz = (m33 + 1) / 2;
+                    var xy = (m12 + m21) / 4;
+                    var xz = (m13 + m31) / 4;
+                    var yz = (m23 + m32) / 4;
+
+                    if ((xx > yy) && (xx > zz)) { // m11 is the largest diagonal term
+                        if (xx < epsilon) {
+                            x = 0;
+                            y = 0.707106781;
+                            z = 0.707106781;
+                        } else {
+                            x = Math.sqrt(xx);
+                            y = xy / x;
+                            z = xz / x;
+                        }
+                    } else if (yy > zz) { // m22 is the largest diagonal term
+                        if (yy < epsilon) {
+                            x = 0.707106781;
+                            y = 0;
+                            z = 0.707106781;
+                        } else {
+                            y = Math.sqrt(yy);
+                            x = xy / y;
+                            z = yz / y;
+                        }
+                    } else { // m33 is the largest diagonal term so base result on this
+                        if (zz < epsilon) {
+                            x = 0.707106781;
+                            y = 0.707106781;
+                            z = 0;
+                        } else {
+                            z = Math.sqrt(zz);
+                            x = xz / z;
+                            y = yz / z;
+                        }
+                    }
+                    self.v.x = x;
+                    self.v.y = y;
+                    self.v.z = z;
+                    self.v.w = angle;
+                    return self; // return 180 deg rotation
+                }
+                // as we have reached here there are no singularities so we can handle normally
+
+                var s = Math.sqrt((m32 - m23) * (m32 - m23)
+                                  + (m13 - m31) * (m13 - m31)
+                                  + (m21 - m12) * (m21 - m12)); // used to normalize
+                if (Math.abs(s) < 0.001) s = 1;
+                // prevent divide by zero, should not happen if matrix is orthogonal and should be
+                // caught by singularity test above, but I've left it in just in case
+                self.v.x = (m32 - m23) / s;
+                self.v.y = (m13 - m31) / s;
+                self.v.z = (m21 - m12) / s;
+                self.v.w = Math.acos((m11 + m22 + m33 - 1) / 2);
+                return self;
+            }
+        );
+
+        $loc.min = new Sk.builtin.func(
+            function(self, v) {
+                if(self.v.x > v.v.x) {
+                    self.v.x = v.v.x;
+                }
+
+                if(self.v.y > v.v.y) {
+                    self.v.y = v.v.y;
+                }
+
+                if(self.v.z > v.z) {
+                    self.v.z = v.z;
+                }
+
+                if(self.v.w > v.w) {
+                    self.v.w = v.w;
+                }
+                return self;
+            }
+        );
+
+        $loc.max = new Sk.builtin.func(
+            function(self, v) {
+                if(self.v.x < v.x) {
+                    self.v.x = v.x;
+                }
+
+                if(self.v.y < v.y) {
+                    self.v.y = v.y;
+                }
+
+                if(self.v.z < v.z) {
+                    self.v.z = v.z;
+                }
+
+                if(self.v.w < v.w) {
+                    self.v.w = v.w;
+                }
+                return self;
+            }
+       );
+
+        $loc.clamp = new Sk.builtin.func(
+            function(self, min, max) {
+                // This function assumes min < max, if this assumption
+                // isn't true it will not operate correctly
+                if(self.v.x < min.v.x) {
+                    self.v.x = min.v.x;
+                } else if(self.v.x > max.v.x) {
+                    self.v.x = max.v.x;
+                }
+
+                if(self.v.y < min.v.y) {
+                    self.v.y = min.v.y;
+                } else if(self.v.y > max.v.y) {
+                    self.v.y = max.v.y;
+                }
+
+                if(self.v.z < min.v.z) {
+                    self.v.z = min.z;
+                } else if(self.v.z > max.v.z) {
+                    self.v.z = max.z;
+                }
+
+                if(self.v.w < min.v.w) {
+                    self.v.w = min.w;
+                } else if(self.v.w > max.v.w) {
+                    self.v.w = max.w;
+                }
+
+                return self;
+            }
+        );
+
+        $loc.clampScalar = NOT_IMPLEMENTED("vec4.clampScalar");
+
+        $loc.floor = new Sk.builtin.func(
+            function(self) {
+                self.v.x = Math.floor(self.v.x);
+                self.v.y = Math.floor(self.v.y);
+                self.v.z = Math.floor(self.v.z);
+                self.v.w = Math.floor(self.v.w);
+                return self;
+            }
+        );
+
+        $loc.ceil = new Sk.builtin.func(
+            function(self) {
+                self.v.x = Math.ceil(self.v.x);
+                self.v.y = Math.ceil(self.v.y);
+                self.v.z = Math.ceil(self.v.z);
+                self.v.w = Math.ceil(self.v.w);
+                return self;
+            }
+        );
+
+        $loc.round = new Sk.builtin.func(
+            function(self) {
+                self.v.x = Math.round(self.v.x);
+                self.v.y = Math.round(self.v.y);
+                self.v.z = Math.round(self.v.z);
+                self.v.w = Math.round(self.v.w);
+                return self;
+            }
+        );
+
+        $loc.roundToZero = new Sk.builtin.func(
+            function(self) {
+                self.v.x =(self.v.x < 0) ? Math.ceil(self.v.x) : Math.floor(self.v.x);
+                self.v.y =(self.v.y < 0) ? Math.ceil(self.v.y) : Math.floor(self.v.y);
+                self.v.z =(self.v.z < 0) ? Math.ceil(self.v.z) : Math.floor(self.v.z);
+                self.v.w =(self.v.w < 0) ? Math.ceil(self.v.w) : Math.floor(self.v.w);
+                return self;
+            }
+        );
+
+        $loc.negate = new Sk.builtin.func(
+            function(self) {
+                self.v.x = - self.v.x;
+                self.v.y = - self.v.y;
+                self.v.z = - self.v.z;
+                self.v.w = - self.v.w;
+                return self;
+            }
+        );
+
+        $loc.dot = new Sk.builtin.func(
+            function(self, v) {
+                return _pyfloat(_v4_dot(self, v));
+            }
+        );
+
+        $loc.lengthSq = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(self.v.x * self.v.x + self.v.y * self.v.y +
+                                self.v.z * self.v.z + self.v.w * self.v.w);
+            }
+        );
+
+        $loc.len = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(_v4_length(self));
+            }
+        );
+
+        $loc.lengthManhattan = new Sk.builtin.func(
+            function(self) {
+                return _pyfloat(Math.abs(self.v.x) + Math.abs(self.v.y) + Math.abs(self.v.z) + Math.abs(self.v.w));
+            }
+        );
+
+        $loc.normalize = new Sk.builtin.func(_v4_normalize);
+
+        $loc.setLength = new Sk.builtin.func(
+            function(self, pyl) {
+                var oldLength = _v4_length(self);
+                var l = _jsnum(pyl);
+                if(oldLength !== 0 && l !== oldLength) {
+                    return _v4_multiply_scalar(s, l / oldLength);
+                }
+                return self;
+            }
+        );
+
+        $loc.lerp = new Sk.builtin.func(
+            function(self, v, pyalpha) {
+                var alpha = _jsnum(pyalpha);
+                self.v.x +=(v.v.x - self.v.x) * alpha;
+                self.v.y +=(v.v.y - self.v.y) * alpha;
+                self.v.z +=(v.v.z - self.v.z) * alpha;
+                self.v.w +=(v.v.w - self.v.w) * alpha;
+                return self;
+            }
+        );
+
+        $loc.equals = new Sk.builtin.func(
+            function(self, v) {
+                return _pybool(v.v.x === self.v.x && v.v.y === self.v.y && v.v.z === self.v.z && v.v.w === self.v.w);
+            }
+        );
+
+        $loc.fromArray = new Sk.builtin.func(
+            function(self, py_array, py_offset) {
+                var off = _jsnum(py_offset);
+                var array = py_array.v;
+                self.v.x = array[off];
+                self.v.y = array[off + 1];
+                self.v.z = array[off + 2];
+                self.v.w = array[off + 3];
+                return self;
+            }
+        );
+
+        $loc.toArray = new Sk.builtin.func(
+            function(self, py_array, py_offset) {
+                var off = _jsnum(py_offset);
+                var array = py_array.v;
+                array[off] = self.v.x;
+                array[off + 1] = self.v.y;
+                array[off + 2] = self.v.z;
+                array[off + 3] = self.v.w;
+                return self;
+            }
+        );
+
+        $loc.clone = new Sk.builtin.func(
+            function(self) {
+                return Sk.misceval.callsim(
+                    mod.vec4, _pyfloat(self.v.x), _pyfloat(self.v.y), _pyfloat(self.v.z), _pyfloat(self.v.w));
+            }
+        );
+    }, 'vec4', []);
 
     var _mat4_set = function(self, n11, n12, n13, n14, n21, n22, n23, n24, n31, n32, n33, n34, n41,
                              n42, n43, n44) {
