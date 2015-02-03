@@ -70,7 +70,7 @@ Sk.builtin.Exception.prototype.tp$str = function () {
     if (this.args) {
         ret += ": " + (this.args.v.length > 0 ? this.args.v[0].v : "");
     }
-    ret += " on line " + this.lineno;
+    ret += " on line " + this.lineno + " of " + this.filename;
 
     if (this.args.v.length > 4) {
         ret += "\n" + this.args.v[4].v + "\n";

@@ -382,6 +382,27 @@ Sk.importMainWithBody = function (name, dumpJS, body) {
     return Sk.importModuleInternal_(name, dumpJS, "__main__", body);
 };
 
+Sk.importMainWithMultipleFiles = function (dumpJS, files) {
+    Sk.dateSet = false;
+    Sk.filesLoaded = false;
+    //	Added to reset imports
+    Sk.sysmodules = new Sk.builtin.dict([]);
+    Sk.realsyspath = undefined;
+
+    Sk.resetCompiler();
+    var res = [];
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i].name;
+        var fname = file.substring(0, file.indexOf('.'))
+        if (fname === "main") {
+            res.push(Sk.importModuleInternal_(fname, dumpJS, "__main__", files[i].body));
+        } else {
+            res.push(Sk.importModuleInternal_(fname, dumpJS, fname, files[i].body));
+        }
+    }
+    return res;
+}
+
 Sk.builtin.__import__ = function (name, globals, locals, fromlist) {
     // Save the Sk.globals variable importModuleInternal_ may replace it when it compiles
     // a Python language module.  for some reason, __name__ gets overwritten.
@@ -416,5 +437,6 @@ Sk.importStar = function (module, loc, global) {
 
 goog.exportSymbol("Sk.importMain", Sk.importMain);
 goog.exportSymbol("Sk.importMainWithBody", Sk.importMainWithBody);
+goog.exportSymbol("Sk.importMainWithMultipleFiles", Sk.importMainWithMultipleFiles);
 goog.exportSymbol("Sk.builtin.__import__", Sk.builtin.__import__);
 goog.exportSymbol("Sk.importStar", Sk.importStar);
