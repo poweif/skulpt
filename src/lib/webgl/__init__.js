@@ -237,10 +237,6 @@ var $builtinmodule = function(name) {
         );
     }, 'Context', []);
 
-    mod.glutCreateWindow = new Sk.builtin.func(function() {
-        
-    });
-
     mod.glut = Sk.misceval.buildClass(mod, function($gbl, $loc) {
         $loc.__init__ = new Sk.builtin.func(
             function(self, glcontext) {
