@@ -99,6 +99,7 @@ Files = [
         'src/symtable.js',
         'src/compile.js',
         'src/import.js',
+        'src/progdom.js',
         'src/timsort.js',
         'src/builtindict.js',
         ("support/jsbeautify/beautify.js", FILE_TYPE_TEST),
