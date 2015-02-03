@@ -4,7 +4,7 @@
 Sk.progdoms = [];
 
 (function() {
-    var generateRandomId = function() {
+    var generateRandomId = function(len) {
         // http://stackoverflow.com/questions/1349404/generate-a-string-of-5-random-characters-in-javascript
         var text = "";
         var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -16,11 +16,12 @@ Sk.progdoms = [];
     };
 
     var create = function(type) {
-        var id = generateRandomId();
-        var ret = document.createElement(type);
-        ret.id = id;
+        var id = type + '_' + generateRandomId();
+        var dom = document.createElement(type);
+        dom.id = id;
+        var ret = {id: id, dom: dom};
         Sk.progdoms.push(ret);
-        return id;
+        return ret;
     };
 
     Sk.createDomCanvas = function(id) {
@@ -35,11 +36,9 @@ Sk.progdoms = [];
 })();
 
 Sk.progdomIds = function() {
-    return Sk.progdoms.map(function(d) {
-        return d.id;
-    });
+    return Sk.progdoms;
 };
-goog.exportSymbol("Sk.progdomIds", Sk.createDomP);
+goog.exportSymbol("Sk.progdomIds", Sk.progdomIds);
 
 Sk.resetProgdoms = function() {
     Sk.progdoms.map(function(dom) {

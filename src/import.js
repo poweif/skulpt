@@ -357,7 +357,7 @@ Sk.importModule = function (name, dumpJS) {
     return Sk.importModuleInternal_(name, dumpJS);
 };
 
-Sk.importMain = function (name, dumpJS) {
+var _clearAllPythonState = function() {
     Sk.dateSet = false;
     Sk.filesLoaded = false;
     //	Added to reset imports
@@ -365,30 +365,24 @@ Sk.importMain = function (name, dumpJS) {
     Sk.realsyspath = undefined;
 
     Sk.resetCompiler();
+    Sk.resetProgdoms();
+};
+
+Sk.importMain = function (name, dumpJS) {
+    _clearAllPythonState();
 
     return Sk.importModuleInternal_(name, dumpJS, "__main__");
 };
 
 Sk.importMainWithBody = function (name, dumpJS, body) {
-    Sk.dateSet = false;
-    Sk.filesLoaded = false;
-    //	Added to reset imports
-    Sk.sysmodules = new Sk.builtin.dict([]);
-    Sk.realsyspath = undefined;
-
-    Sk.resetCompiler();
+    _clearAllPythonState();
 
     return Sk.importModuleInternal_(name, dumpJS, "__main__", body);
 };
 
 Sk.importMainWithMultipleFiles = function (dumpJS, files) {
-    Sk.dateSet = false;
-    Sk.filesLoaded = false;
-    //	Added to reset imports
-    Sk.sysmodules = new Sk.builtin.dict([]);
-    Sk.realsyspath = undefined;
+    _clearAllPythonState();
 
-    Sk.resetCompiler();
     var res = [];
     for (var i = 0; i < files.length; i++) {
         var file = files[i].name;

@@ -73,27 +73,38 @@ var $builtinmodule = function(name) {
             }
             catch (e) {
             }
-            if (browsers.Chrome &&
-                (browsers.Chrome[0] > 7 ||
-                 (browsers.Chrome[0] == 7 && browsers.Chrome[1] > 0) ||
-                 (browsers.Chrome[0] == 7 && browsers.Chrome[1] == 0 && browsers.Chrome[2] >= 521))) {
-                container.innerHTML = makeFailHTML(NEED_HARDWARE);
-            }
-            else {
-                container.innerHTML = makeFailHTML(GET_A_WEBGL_BROWSER);
+
+            if (container) {
+                if (browsers.Chrome &&
+                    (browsers.Chrome[0] > 7 ||
+                     (browsers.Chrome[0] == 7 && browsers.Chrome[1] > 0) ||
+                     (browsers.Chrome[0] == 7 && browsers.Chrome[1] == 0 &&
+                      browsers.Chrome[2] >= 521))) {
+                    container.innerHTML = makeFailHTML(NEED_HARDWARE);
+                }
+                else {
+                    container.innerHTML = makeFailHTML(GET_A_WEBGL_BROWSER);
+                }
             }
         }
         return gl;
     };
 
+    mod.contextFromId = new Sk.builtin.func(function(canvasId) {
+        var canvas = document.getElementById(canvasId.v);
+        if (canvas) {
+            return Sk.misceval.callsim(mod.context, canvas);
+        }
+        return Sk.builtin.none;
+    });
+
     /**
      * The Context encapsulates the underlying WebGL native JavaScript API.
      */
-    mod.Context = Sk.misceval.buildClass(mod, function($gbl, $loc) {
+    mod.context = Sk.misceval.buildClass(mod, function($gbl, $loc) {
         $loc.__init__ = new Sk.builtin.func(
-            function(self, canvasid) {
-                var canvas = document.getElementById(canvasid.v);
-                var gl = setupWebGL(canvasid.v, canvas);
+            function(self, canvas) {
+                var gl = setupWebGL(null, canvas);
                 if (!gl) {
                     throw new Error("Your browser does not appear to support WebGL.");
                 }
@@ -237,6 +248,13 @@ var $builtinmodule = function(name) {
         );
     }, 'Context', []);
 
+    mod.glutCreateWindow = new Sk.builtin.func(function() {
+        var canvas = Sk.createDomCanvas();
+        var context = Sk.misceval.callsim(mod.context, canvas.dom);
+        var glut = Sk.misceval.callsim(mod.glut, context);
+        return new Sk.builtin.tuple([context, glut]);
+    });
+
     mod.glut = Sk.misceval.buildClass(mod, function($gbl, $loc) {
         $loc.__init__ = new Sk.builtin.func(
             function(self, glcontext) {
@@ -251,7 +269,6 @@ var $builtinmodule = function(name) {
                     }
 
                     self.runResize = setTimeout(function() {
-                        console.log("running resize");
                         var rect = self.canvas.getBoundingClientRect();
                         self.left = rect.left;
                         self.top = rect.top;
@@ -259,7 +276,6 @@ var $builtinmodule = function(name) {
                     }, 500);
                 };
                 self.resizeFunc = self.defaultResizeFunc;
-                self.resizeFunc();
 
                 self.userMotionFunc = null;
                 self.userPassiveMotionFunc = null;
@@ -273,7 +289,6 @@ var $builtinmodule = function(name) {
                             Sk.builtin.assk$(ev.clientY - self.top, Sk.builtin.nmber.int$)
                         );
                     } else if (self.userPassiveMotionFunc) {
-                        console.log('move');
                         Sk.misceval.callsim(
                             self.userPassiveMotionFunc,
                             self.gl,
@@ -284,6 +299,16 @@ var $builtinmodule = function(name) {
                 };
 
                 self.canvas.addEventListener("resize", self.resizeFunc);
+
+                // Caveats to the following lines.
+                // Observers are supported only by the newer browsers (2015/01).
+                // A style change does not automatically imply a resize.
+                var observer = new MutationObserver(function(mutations) {
+                    self.resizeFunc();
+                });
+                observer.observe(
+                    self.canvas,
+                    {attributes: true, attributeFilter: ['style', 'width', 'height']});
 
                 self.gl = glcontext;
                 document.addEventListener('mousemove', function(ev) {
@@ -355,7 +380,6 @@ var $builtinmodule = function(name) {
 
         $loc.reshapeFunc = new Sk.builtin.func(
             function(self, func) {
-                window.removeEventListener("resize", self.resizeFunc);
                 if (func) {
                     self.resizeFunc = function(ev) {
                         var rect = self.canvas.getBoundingClientRect();
@@ -367,7 +391,6 @@ var $builtinmodule = function(name) {
                         );
                         self.defaultResizeFunc();
                     };
-                    window.addEventListener("resize", self.resizeFunc);
                 }
             }
         );
