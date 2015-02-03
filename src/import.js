@@ -341,7 +341,6 @@ Sk.importModuleInternal_ = function (name, dumpJS, modname, suppliedPyBody) {
         // package. we store ourselves into our parent as an attribute
         parentModule = Sk.sysmodules.mp$subscript(parentModName);
         parentModule.tp$setattr(modNameSplit[modNameSplit.length - 1], module);
-        //print("import returning parent module, modname", modname, "__name__", toReturn.tp$getattr("__name__").v);
         return toReturn;
     }
 
