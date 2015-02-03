@@ -281,7 +281,12 @@ var $builtinmodule = function(name) {
                 self.userPassiveMotionFunc = null;
 
                 self.defaultMouseMoveFunc = function(ev) {
-                    if (ev.buttons !== 0 && self.userMotionFunc) {
+                    var button = ev.buttons;
+                    // Firefox uses ev.buttons.  Chrome uses ev.which
+                    if (button == undefined) {
+                        button = ev.which
+                    }
+                    if (button !== 0 && self.userMotionFunc) {
                         Sk.misceval.callsim(
                             self.userMotionFunc,
                             self.gl,
@@ -311,9 +316,6 @@ var $builtinmodule = function(name) {
                     {attributes: true, attributeFilter: ['style', 'width', 'height']});
 
                 self.gl = glcontext;
-                document.addEventListener('mousemove', function(ev) {
-                    lastMouseTarget = ev.target;
-                }, false);
             }
         );
 
