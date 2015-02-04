@@ -138,6 +138,7 @@ var $builtinmodule = function(name) {
                         case 'uniform2f':
                         case 'uniform3f':
                         case 'uniform4f':
+                        case 'lineWidth':
                         case 'vertexAttribPointer':
                         case 'viewport':
                             break;
@@ -274,6 +275,12 @@ p                                    })
         $loc.uniform4f = new Sk.builtin.func(
             function(self, location, a, b, c, d) {
                 self.gl.uniform4f(Sk.builtin.asnum$(location), _jsnum(a), _jsnum(b), _jsnum(c), _jsnum(d));
+            }
+        );
+
+        $loc.lineWidth = new Sk.builtin.func(
+            function(self, location, l) {
+                self.gl.lineWidth(Sk.builtin.asnum$(location), _jsnum(l));
             }
         );
     }, 'Context', []);
