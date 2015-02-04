@@ -1,6 +1,8 @@
 var $builtinmodule = function(name) {
     var mod = {};
 
+    var _jsnum = Sk.builtin.asnum$;
+
     var makeFailHTML = function(msg) {
         return '' +
             '<table style="background-color: #8CE; width: 100%; height: 100%;"><tr>' +
@@ -132,6 +134,9 @@ var $builtinmodule = function(name) {
                         case 'getUniformLocation':
                         case 'shaderSource':
                         case 'uniformMatrix4fv':
+                        case 'uniform1f':
+                        case 'uniform2f':
+                        case 'uniform3f':
                         case 'uniform4f':
                         case 'vertexAttribPointer':
                         case 'viewport':
@@ -144,7 +149,7 @@ var $builtinmodule = function(name) {
                                     new Sk.builtin.func(function() {
                                         var f = gl.__proto__[key];
                                         return f.apply(gl, arguments);
-                                    })
+p                                    })
                                 );
                             }(k));
                         }
@@ -246,6 +251,31 @@ var $builtinmodule = function(name) {
                 self.gl.uniform3f(Sk.builtin.asnum$(location), v.v.x, v.v.y, v.v.z);
             }
         );
+
+        $loc.uniform1f = new Sk.builtin.func(
+            function(self, location, a) {
+                self.gl.uniform1f(Sk.builtin.asnum$(location), _jsnum(a));
+            }
+        );
+
+        $loc.uniform2f = new Sk.builtin.func(
+            function(self, location, a, b) {
+                self.gl.uniform2f(Sk.builtin.asnum$(location), _jsnum(a), _jsnum(b));
+            }
+        );
+
+
+        $loc.uniform3f = new Sk.builtin.func(
+            function(self, location, a, b, c) {
+                self.gl.uniform3f(Sk.builtin.asnum$(location), _jsnum(a), _jsnum(b), _jsnum(c));
+            }
+        );
+
+        $loc.uniform4f = new Sk.builtin.func(
+            function(self, location, a, b, c, d) {
+                self.gl.uniform4f(Sk.builtin.asnum$(location), _jsnum(a), _jsnum(b), _jsnum(c), _jsnum(d));
+            }
+        );
     }, 'Context', []);
 
     mod.glutCreateWindow = new Sk.builtin.func(function() {
@@ -314,6 +344,10 @@ var $builtinmodule = function(name) {
                 observer.observe(
                     self.canvas,
                     {attributes: true, attributeFilter: ['style', 'width', 'height']});
+
+                self.canvas.oncontextmenu = function() {
+                    return false;
+                };
 
                 self.gl = glcontext;
             }
@@ -388,8 +422,8 @@ var $builtinmodule = function(name) {
                         Sk.misceval.callsim(
                             func,
                             self.gl,
-                            Sk.builtin.assk$(rect.width),
-                            Sk.builtin.assk$(rect.height)
+                            Sk.builtin.assk$(self.canvas.clientWidth),
+                            Sk.builtin.assk$(self.canvas.clientHeight)
                         );
                         self.defaultResizeFunc();
                     };
