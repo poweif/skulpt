@@ -127,6 +127,7 @@ var $builtinmodule = function(name) {
                     else if (typeof gl.__proto__[k] === "function") {
                         switch(k) {
                         case 'bufferData':
+                        case 'bufferSubData':
                         case 'clearColor':
                         case 'drawArrays':
                         case 'drawElements':
@@ -171,6 +172,12 @@ p                                    })
         $loc.bufferData = new Sk.builtin.func(
             function(self, target, data, usage) {
                 self.gl.bufferData(target, data.v, usage);
+            }
+        );
+
+        $loc.bufferSubData = new Sk.builtin.func(
+            function(self, target, offset, data) {
+                self.gl.bufferSubData(target, _jsnum(offset), data.v);
             }
         );
 

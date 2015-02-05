@@ -210,8 +210,10 @@ var $builtinmodule = function(name)
             return _pyint(self.v.length)
         });
 
-        $loc.subarray = new Sk.builtin.func(function(self, offset, len) {
-            var view = self.v.subarray(offset, len);
+        $loc.subarray = new Sk.builtin.func(function(self, poffset, plen) {
+            var offset = _jsnum(poffset);
+            var len = _jsnum(plen);
+            var view = self.v.subarray(offset, offset + len);
             var ret = Sk.misceval.callsim(mod.arrayf);
             ret.v = view;
             return ret;
