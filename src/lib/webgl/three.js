@@ -176,9 +176,13 @@ var $builtinmodule = function(name)
         };
 
         $loc.__init__ = new Sk.builtin.func(function(self, data) {
+            if (!data) {
+                self.v = new Float32Array(0);
+                return;
+            }
+
             if (typeof data === "number") {
                 self.v = new Float32Array(data);
-                return;
             } else if (Sk.abstr.typeName(data) === "list") {
                 var arr = data.v;
                 if (arr.length > 0) {
@@ -188,9 +192,8 @@ var $builtinmodule = function(name)
                         self.v = new Float32Array(Sk.ffi.remapToJs(data));
                     }
                 }
-                return;
             }
-            self.v = new Uint16Array(0);
+            // TODO(poweif): Should throw something here
         });
 
         $loc.__repr__ = new Sk.builtin.func(function(self) {
@@ -205,6 +208,26 @@ var $builtinmodule = function(name)
             if (!self.v)
                 return _pyint(0);
             return _pyint(self.v.length)
+        });
+
+        $loc.subarray = new Sk.builtin.func(function(self, offset, len) {
+            var view = self.v.subarray(offset, len);
+            var ret = Sk.misceval.callsim(mod.arrayf);
+            ret.v = view;
+            return ret;
+        });
+
+        $loc.set = new Sk.builtin.func(function(self, i, v) {
+            self.v[_jsnum[i]] = _jsnum(v);
+        });
+
+        $loc.set_vec3 = new Sk.builtin.func(function(self, pi, v) {
+            var i = _jsnum(pi);
+            var arr = self.v;
+            arr[i] = v.v.x;
+            arr[i + 1] = v.v.y;
+            arr[i + 2] = v.v.z;
+            return self;
         });
     }, 'arrayf', []);
 
@@ -225,9 +248,13 @@ var $builtinmodule = function(name)
         };
 
         $loc.__init__ = new Sk.builtin.func(function(self, data) {
+            if (!data) {
+                self.v = new Uint16Array(0);
+                return;
+            }
+
             if (typeof data === "number") {
                 self.v = new Uint16Array(data);
-                return;
             } else if (Sk.abstr.typeName(data) === "list") {
                 var arr = data.v;
                 if (arr.length > 0) {
@@ -237,9 +264,8 @@ var $builtinmodule = function(name)
                         self.v = new Uint16Array(Sk.ffi.remapToJs(data));
                     }
                 }
-                return;
             }
-            self.v = new Uint16Array(0);
+            // TODO(poweif): Should throw something here
         });
 
         $loc.__repr__ = new Sk.builtin.func(function(self) {
@@ -253,6 +279,10 @@ var $builtinmodule = function(name)
             if (!self.v)
                 return _pyint(0);
             return _pyint(self.v.length)
+        });
+
+        $loc.set = new Sk.builtin.func(function(self, i, v) {
+            self.v[_jsnum[i]] = _jsnum(v);
         });
     }, 'arrayi', []);
 
