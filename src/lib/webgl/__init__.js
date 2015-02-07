@@ -300,6 +300,14 @@ p                                    })
     });
 
     mod.glut = Sk.misceval.buildClass(mod, function($gbl, $loc) {
+        $loc.LEFT_BUTTON = 0;
+        $loc.RIGHT_BUTTON = 1;
+        $loc.MIDDLE_BUTTON = 2;
+        $loc.WHEEL_UP_BUTTON = 3;
+        $loc.WHEEL_DOWN_BUTTON = 4;
+        $loc.UP = 13;
+        $loc.DOWN = 14;
+
         $loc.__init__ = new Sk.builtin.func(
             function(self, glcontext) {
                 self.canvas = glcontext.canvas;
@@ -323,6 +331,7 @@ p                                    })
 
                 self.userMotionFunc = null;
                 self.userPassiveMotionFunc = null;
+                self.userMouseFunc = null;
 
                 self.defaultMouseMoveFunc = function(ev) {
                     var button = ev.buttons;
@@ -347,9 +356,58 @@ p                                    })
                     }
                 };
 
-                self.canvas.addEventListener("resize", self.resizeFunc);
+                var defaultMouseFunc = function(state, button, x, y) {
+                    if (self.userMouseFunc) {
+                        Sk.misceval.callsim(
+                            self.userMouseFunc,
+                            self.gl,
+                            button,
+                            state,
+                            Sk.builtin.assk$(x, Sk.builtin.nmber.int$),
+                            Sk.builtin.assk$(y, Sk.builtin.nmber.int$)
+                        );
+                    }
+                };
 
-                // Caveats to the following lines.
+                self.defaultMouseWheelFunc = function(e) {
+                    // cross-browser wheel delta
+                    var ev = window.event || e; // old IE support
+                    var x = ev.clientX - self.left;
+                    var y = ev.clientY - self.top;
+                    var delta = Math.max(-1, Math.min(1, (ev.wheelDelta || -ev.detail)));
+                    ev.stopPropagation();
+                    ev.preventDefault();
+                    // Only down events for mouse wheel
+                    if (delta > 0)
+                        defaultMouseFunc($loc.DOWN, $loc.WHEEL_UP_BUTTON, x, y);
+                    else
+                        defaultMouseFunc($loc.DOWN, $loc.WHEEL_DOWN_BUTTON, x, y);
+                };
+
+                self.defaultMouseDownFunc = function(ev) {
+                    var x = ev.clientX - self.left;
+                    var y = ev.clientY - self.top;
+                    var button = -1;
+                    if (ev.button == 0) button = $loc.LEFT_BUTTON;
+                    else if (ev.button == 1) button = $loc.MIDDLE_BUTTON;
+                    else if (ev.button == 2) button = $loc.RIGHT_BUTTON;
+                    if (button >=0)
+                        defaultMouseFunc($loc.DOWN, button, x, y);
+                };
+
+                self.defaultMouseUpFunc = function(ev) {
+                    var x = ev.clientX - self.left;
+                    var y = ev.clientY - self.top;
+                    var button = -1;
+                    if (ev.button == 0) button = $loc.LEFT_BUTTON;
+                    else if (ev.button == 1) button = $loc.MIDDLE_BUTTON;
+                    else if (ev.button == 2) button = $loc.RIGHT_BUTTON;
+                    if (button >=0)
+                        defaultMouseFunc($loc.UP, button, x, y);
+                };
+
+                self.canvas.addEventListener("resize", self.resizeFunc);
+                // Caveats to the following code.
                 // Observers are supported only by the newer browsers (2015/01).
                 // A style change does not automatically imply a resize.
                 var observer = new MutationObserver(function(mutations) {
@@ -367,12 +425,6 @@ p                                    })
             }
         );
 
-        $loc.LEFT_BUTTON = 0;
-        $loc.RIGHT_BUTTON = 1;
-        $loc.MIDDLE_BUTTON = 2;
-        $loc.UP = 3;
-        $loc.DOWN = 4;
-
         $loc.displayFunc = new Sk.builtin.func(
             function(self, func) {
                 Sk.misceval.callsim(func, self.gl);
@@ -381,34 +433,12 @@ p                                    })
 
         $loc.mouseFunc = new Sk.builtin.func(
             function(self, func) {
-                self.canvas.onmousedown = function(ev) {
-                    var button = -1;
-                    if (ev.button == 0) button = $loc.LEFT_BUTTON;
-                    else if (ev.button == 1) button = $loc.MIDDLE_BUTTON;
-                    else if (ev.button == 2) button = $loc.RIGHT_BUTTON;
-                    Sk.misceval.callsim(
-                        func,
-                        self.gl,
-                        button,
-                        $loc.DOWN,
-                        Sk.builtin.assk$(ev.clientX - self.left, Sk.builtin.nmber.int$),
-                        Sk.builtin.assk$(ev.clientY - self.top,  Sk.builtin.nmber.int$)
-                    );
-                };
-                self.canvas.onmouseup = function(ev) {
-                    var button = -1;
-                    if (ev.button == 0) button = $loc.LEFT_BUTTON;
-                    else if (ev.button == 1) button = $loc.MIDDLE_BUTTON;
-                    else if (ev.button == 2) button = $loc.RIGHT_BUTTON;
-                    Sk.misceval.callsim(
-                        func,
-                        self.gl,
-                        button,
-                        $loc.UP,
-                        Sk.builtin.assk$(ev.clientX - self.left, Sk.builtin.nmber.int$),
-                        Sk.builtin.assk$(ev.clientY - self.top, Sk.builtin.nmber.int$)
-                    );
-                };
+                self.userMouseFunc = func;
+                if (!self.canvas.onmousedown || !self.canvas.onmouseup || !self.canvas.onmousewheel) {
+                    self.canvas.onmousedown = self.defaultMouseDownFunc;
+                    self.canvas.onmouseup = self.defaultMouseUpFunc;
+                    self.canvas.onmousewheel = self.defaultMouseWheelFunc;
+                }
             }
         );
 
