@@ -24,13 +24,16 @@ Sk.progdoms = [];
         return ret;
     };
 
-    Sk.createDomCanvas = function(id) {
+    Sk.createDomCanvas = function() {
         return create("canvas");
     };
     goog.exportSymbol("Sk.createDomCanvas", Sk.createDomCanvas);
 
-    Sk.createDomP = function(id) {
+    Sk.createDomP = function() {
         return create("p");
+    };
+    Sk.createDomDiv = function() {
+        return create("div");
     };
     goog.exportSymbol("Sk.createDomP", Sk.createDomP);
 })();
