@@ -292,9 +292,20 @@ p                                    })
         );
     }, 'Context', []);
 
-    mod.glutCreateWindow = new Sk.builtin.func(function() {
+    mod.glutCreateWindow = new Sk.builtin.func(function(width, height) {
+        var jsWidth = 350, jsHeight = 350;
+        if (width) {
+            jsWidth = _jsnum(width);
+            if (height) {
+                jsHeight = _jsnum(height);
+            } else {
+                jsHeight = jsWidth;
+            }
+        }
         var canvas = Sk.createDomCanvas();
         var context = Sk.misceval.callsim(mod.context, canvas.dom);
+        canvas.dom.width = jsWidth;
+        canvas.dom.height = jsHeight;
         var glut = Sk.misceval.callsim(mod.glut, context);
         return new Sk.builtin.tuple([context, glut]);
     });
@@ -311,9 +322,6 @@ p                                    })
         $loc.__init__ = new Sk.builtin.func(
             function(self, glcontext) {
                 self.canvas = glcontext.canvas;
-                self.left = 0;
-                self.top = 0;
-
                 self.runResize = null;
                 self.defaultResizeFunc = function() {
                     if (self.runResize) {
@@ -322,8 +330,6 @@ p                                    })
 
                     self.runResize = setTimeout(function() {
                         var rect = self.canvas.getBoundingClientRect();
-                        self.left = rect.left;
-                        self.top = rect.top;
                         self.runResize = null;
                     }, 500);
                 };
@@ -334,6 +340,9 @@ p                                    })
                 self.userMouseFunc = null;
 
                 self.defaultMouseMoveFunc = function(ev) {
+                    var rect = self.canvas.getBoundingClientRect();
+                    var tleft = rect.left;
+                    var ttop = rect.top;
                     var button = ev.buttons;
                     // Firefox uses ev.buttons.  Chrome uses ev.which
                     if (button == undefined) {
@@ -343,15 +352,15 @@ p                                    })
                         Sk.misceval.callsim(
                             self.userMotionFunc,
                             self.gl,
-                            Sk.builtin.assk$(ev.clientX - self.left, Sk.builtin.nmber.int$),
-                            Sk.builtin.assk$(ev.clientY - self.top, Sk.builtin.nmber.int$)
+                            Sk.builtin.assk$(ev.clientX - tleft, Sk.builtin.nmber.int$),
+                            Sk.builtin.assk$(ev.clientY - ttop, Sk.builtin.nmber.int$)
                         );
                     } else if (self.userPassiveMotionFunc) {
                         Sk.misceval.callsim(
                             self.userPassiveMotionFunc,
                             self.gl,
-                            Sk.builtin.assk$(ev.clientX - self.left, Sk.builtin.nmber.int$),
-                            Sk.builtin.assk$(ev.clientY - self.top, Sk.builtin.nmber.int$)
+                            Sk.builtin.assk$(ev.clientX - tleft, Sk.builtin.nmber.int$),
+                            Sk.builtin.assk$(ev.clientY - ttop, Sk.builtin.nmber.int$)
                         );
                     }
                 };
@@ -370,10 +379,13 @@ p                                    })
                 };
 
                 self.defaultMouseWheelFunc = function(e) {
+                    var rect = self.canvas.getBoundingClientRect();
+                    var tleft = rect.left;
+                    var ttop = rect.top;
                     // cross-browser wheel delta
                     var ev = window.event || e; // old IE support
-                    var x = ev.clientX - self.left;
-                    var y = ev.clientY - self.top;
+                    var x = ev.clientX - tleft;
+                    var y = ev.clientY - ttop;
                     var delta = Math.max(-1, Math.min(1, (ev.wheelDelta || -ev.detail)));
                     ev.stopPropagation();
                     ev.preventDefault();
@@ -385,8 +397,11 @@ p                                    })
                 };
 
                 self.defaultMouseDownFunc = function(ev) {
-                    var x = ev.clientX - self.left;
-                    var y = ev.clientY - self.top;
+                    var rect = self.canvas.getBoundingClientRect();
+                    var tleft = rect.left;
+                    var ttop = rect.top;
+                    var x = ev.clientX - tleft;
+                    var y = ev.clientY - ttop;
                     var button = -1;
                     if (ev.button == 0) button = $loc.LEFT_BUTTON;
                     else if (ev.button == 1) button = $loc.MIDDLE_BUTTON;
@@ -396,8 +411,11 @@ p                                    })
                 };
 
                 self.defaultMouseUpFunc = function(ev) {
-                    var x = ev.clientX - self.left;
-                    var y = ev.clientY - self.top;
+                    var rect = self.canvas.getBoundingClientRect();
+                    var tleft = rect.left;
+                    var ttop = rect.top;
+                    var x = ev.clientX - tleft;
+                    var y = ev.clientY - ttop;
                     var button = -1;
                     if (ev.button == 0) button = $loc.LEFT_BUTTON;
                     else if (ev.button == 1) button = $loc.MIDDLE_BUTTON;
@@ -416,7 +434,7 @@ p                                    })
                 observer.observe(
                     self.canvas,
                     {attributes: true, attributeFilter: ['style', 'width', 'height']});
-
+                self.resizeFunc();
                 self.canvas.oncontextmenu = function() {
                     return false;
                 };

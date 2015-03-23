@@ -2140,7 +2140,6 @@ var $builtinmodule = function(name)
                 var ymin = - ymax;
                 var xmin = ymin * aspect;
                 var xmax = ymax * aspect;
-
                 return _mat4_make_frustum(self, xmin, xmax, ymin, ymax, near, far);
             }
         );
