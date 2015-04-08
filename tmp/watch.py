@@ -74,6 +74,11 @@ if __name__ == "__main__":
     dist_path = './dist'
     src_path = './src'
     event_handler = BuildEventHandler(dist_path, dest_path)
+
+    # If there is a third argument, assume it means quit after generation.
+    if len(sys.argv) > 2:
+        exit(0)
+
     observer = Observer()
     observer.schedule(event_handler, src_path, recursive=True)
     observer.start()
